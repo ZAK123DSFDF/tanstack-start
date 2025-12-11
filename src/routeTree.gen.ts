@@ -9,9 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as JokeServerRouteImport } from './routes/jokeServer'
 import { Route as JokeRouteImport } from './routes/joke'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiSplatRouteImport } from './routes/api.$'
 
+const JokeServerRoute = JokeServerRouteImport.update({
+  id: '/jokeServer',
+  path: '/jokeServer',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const JokeRoute = JokeRouteImport.update({
   id: '/joke',
   path: '/joke',
@@ -22,35 +29,55 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiSplatRoute = ApiSplatRouteImport.update({
+  id: '/api/$',
+  path: '/api/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/joke': typeof JokeRoute
+  '/jokeServer': typeof JokeServerRoute
+  '/api/$': typeof ApiSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/joke': typeof JokeRoute
+  '/jokeServer': typeof JokeServerRoute
+  '/api/$': typeof ApiSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/joke': typeof JokeRoute
+  '/jokeServer': typeof JokeServerRoute
+  '/api/$': typeof ApiSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/joke'
+  fullPaths: '/' | '/joke' | '/jokeServer' | '/api/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/joke'
-  id: '__root__' | '/' | '/joke'
+  to: '/' | '/joke' | '/jokeServer' | '/api/$'
+  id: '__root__' | '/' | '/joke' | '/jokeServer' | '/api/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   JokeRoute: typeof JokeRoute
+  JokeServerRoute: typeof JokeServerRoute
+  ApiSplatRoute: typeof ApiSplatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/jokeServer': {
+      id: '/jokeServer'
+      path: '/jokeServer'
+      fullPath: '/jokeServer'
+      preLoaderRoute: typeof JokeServerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/joke': {
       id: '/joke'
       path: '/joke'
@@ -65,12 +92,21 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/$': {
+      id: '/api/$'
+      path: '/api/$'
+      fullPath: '/api/$'
+      preLoaderRoute: typeof ApiSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   JokeRoute: JokeRoute,
+  JokeServerRoute: JokeServerRoute,
+  ApiSplatRoute: ApiSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
