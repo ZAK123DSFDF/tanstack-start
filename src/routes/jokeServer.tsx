@@ -4,15 +4,15 @@ import {api} from "@/routes/api.$.ts";
 import {createServerFn} from "@tanstack/react-start";
 
 export const fetchJoke1 = createServerFn().handler(async () => {
-    // Call your Elysia backend API
+    const result = await api().joke.random.get();
 
-    return await api().joke.random.get();
+    return result.data; // <-- Only JSON serializable value
 });
 
-// Fetch joke 2
 export const fetchJoke2 = createServerFn().handler(async () => {
+    const result = await api().joke.random2.get();
 
-    return await api().joke.random2.get();
+    return result.data;
 });
 export const Route = createFileRoute("/jokeServer")({
     loader: () => ({
@@ -20,7 +20,6 @@ export const Route = createFileRoute("/jokeServer")({
         joke2: fetchJoke2(),
     }),
     component: JokePage,
-
 
 });
 

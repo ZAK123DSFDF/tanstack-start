@@ -7,10 +7,10 @@ export function JokeData(){
     return(
         <>
             <Suspense fallback={<p style={{ color: "blue" }}>Loading joke…</p>}>
-                <p style={{ marginTop: "10px", fontSize: "18px" }}>{joke1}</p>
+                <p style={{ marginTop: "10px", fontSize: "18px" }}>{joke1.data.setup}</p>
             </Suspense>
             <Suspense fallback={<p style={{ color: "blue" }}>Loading second joke…</p>}>
-                <p style={{ marginTop: "10px", fontSize: "18px" }}>{joke2}</p>
+                <p style={{ marginTop: "10px", fontSize: "18px" }}>{joke2.data.setup}</p>
             </Suspense>
         </>
 
