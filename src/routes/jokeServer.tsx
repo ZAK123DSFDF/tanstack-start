@@ -6,13 +6,12 @@ import {createServerFn} from "@tanstack/react-start";
 export const fetchJoke1 = createServerFn().handler(async () => {
     const result = await api().joke.random.get();
 
-    return result.data; // <-- Only JSON serializable value
+    return result.data?.data; // <-- Only JSON serializable value
 });
 
 export const fetchJoke2 = createServerFn().handler(async () => {
     const result = await api().joke.random2.get();
-
-    return result.data;
+    return result.data?.data;
 });
 export const Route = createFileRoute("/jokeServer")({
     loader: () => ({
