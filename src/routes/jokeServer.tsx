@@ -1,23 +1,49 @@
-import { createFileRoute } from "@tanstack/react-router";
+// src/routes/jokeServer.tsx
+
 import { JokeData } from "@/components/JokeData.tsx";
+import {
+  createFileRoute,
+  defer,
+  useNavigate,
+  useSearch,
+} from "@tanstack/react-router";
 import { api } from "@/routes/api.$.ts";
-import { createServerFn } from "@tanstack/react-start";
-
-export const fetchJoke1 = createServerFn().handler(async () => {
-  const result = await api().joke.random.get();
-
-  return result.data; // <-- Only JSON serializable value
+import { cleanTreaty } from "@/lib/eden/treaty-helper.ts";
+import { z } from "zod";
+import {
+  DEFAULT_JOKE_CATEGORY,
+  JOKE_CATEGORIES,
+} from "@/lib/constants/jokes.ts";
+import { useEffect, useState } from "react";
+import { queryOptions } from "@tanstack/react-query";
+const jokeSearchSchema = z.object({
+  query: z.string().optional().catch(""),
+  category: z.enum(JOKE_CATEGORIES).optional().catch(DEFAULT_JOKE_CATEGORY),
 });
 
-export const fetchJoke2 = createServerFn().handler(async () => {
-  const result = await api().joke.random2.get();
-  return result.data;
-});
 export const Route = createFileRoute("/jokeServer")({
-  loader: () => ({
-    joke1: fetchJoke1(),
-    joke2: fetchJoke2(),
+  validateSearch: (search) => jokeSearchSchema.parse(search),
+  loaderDeps: ({ search }) => ({
+    query: search.query,
+    category: search.category,
   }),
+  loader: ({ context: { queryClient }, deps: { query, category } }) => {
+    const searchPromise = queryClient.ensureQueryData({
+      queryKey: ["joke", "search", query, category],
+      queryFn: () =>
+        cleanTreaty(api().joke.random.get({ query: { query, category } })),
+    });
+    const staticJokeOptions = queryOptions({
+      queryKey: ["joke", "static"],
+      queryFn: () => cleanTreaty(api().joke.random2.get()),
+      staleTime: Infinity,
+    });
+    const staticPromise = queryClient.ensureQueryData(staticJokeOptions);
+    return {
+      joke1Promise: defer(searchPromise),
+      joke2Promise: defer(staticPromise),
+    };
+  },
   component: JokePage,
 });
 
@@ -25,17 +51,60 @@ export const Route = createFileRoute("/jokeServer")({
 // 3️⃣ Page component (FIXED: Accessing data from useLoader())
 // -----------------------------
 function JokePage() {
-  // 🔑 FIX 3: When the loader is NOT returning promises, useLoader returns the resolved data directly.
-  // The router automatically waits for the loader to finish before rendering the component.
+  const navigate = useNavigate({ from: Route.fullPath });
+  const search = useSearch({ from: Route.fullPath });
 
-  // Since the loader has already completed successfully, we don't check for isLoading or error here.
-  // The data is guaranteed to be the resolved joke string.
+  // Local state for the input to allow smooth typing
+  const [tempQuery, setTempQuery] = useState(search.query ?? "");
 
+  // Debounce: Update URL 400ms after user stops typing
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      navigate({
+        search: (prev) => ({ ...prev, query: tempQuery || undefined }),
+        replace: true,
+      }).then(() => console.log("Navigated"));
+    }, 400);
+    return () => clearTimeout(delay);
+  }, [tempQuery, navigate]);
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>Random Joke</h1>
+    <div style={{ padding: "20px", maxWidth: "600px" }}>
+      <h1>Random Jokes</h1>
 
-      {/* This UI is rendered ONLY after the loader (and getJoke()) succeeds */}
+      <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
+        {/* Search Input */}
+        <input
+          type="text"
+          placeholder="Search for a joke..."
+          value={tempQuery}
+          onChange={(e) => setTempQuery(e.target.value)}
+          style={{
+            flex: 1,
+            padding: "8px",
+            borderRadius: "4px",
+            border: "1px solid #ccc",
+          }}
+        />
+
+        {/* Category Select */}
+        <select
+          value={search.category}
+          onChange={(e) => {
+            navigate({
+              search: (prev) => ({ ...prev, category: e.target.value as any }),
+              replace: true,
+            }).then(() => console.log("Navigated"));
+          }}
+          style={{ padding: "8px", borderRadius: "4px" }}
+        >
+          {JOKE_CATEGORIES.map((cat) => (
+            <option key={cat} value={cat}>
+              {cat.charAt(0).toUpperCase() + cat.slice(1)}
+            </option>
+          ))}
+        </select>
+      </div>
+      <hr />
       <JokeData />
     </div>
   );

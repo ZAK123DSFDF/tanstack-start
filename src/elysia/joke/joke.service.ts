@@ -36,15 +36,44 @@ export class JokeService {
     });
   }
 
-  async getRandomJoke() {
+  async getRandomJoke(query?: string, category?: string) {
     return handleAction("GetRandomJoke", async () => {
       await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      const shouldError = false;
+      if (shouldError) {
+        throw throwHttpError({
+          status: 500,
+          error: "DatabaseError",
+          message: "The joke database is currently offline.",
+          toast: "Could not fetch jokes 😢",
+        });
+      }
+
+      // Logic using the query and category
+      const jokeText = query
+        ? `Here is a ${category || "general"} joke about "${query}": Why did the ${query} cross the road?`
+        : "Why don't scientists trust atoms? Because they make up everything!";
+
       return {
-        ok: false,
-        status: 503,
-        error: "Joke API unreachable",
-        message: "Failed to fetch joke from external API",
-        toast: "Unable to load jokes right now 😢",
+        ok: true,
+        status: 200,
+        data: {
+          message: jokeText,
+          category: category || "general",
+        },
+      };
+    });
+  }
+  async getSlowJoke() {
+    return handleAction("GetSlowJoke", async () => {
+      await new Promise((resolve) => setTimeout(resolve, 4000)); // 4 seconds!
+      return {
+        ok: true,
+        status: 200,
+        data: {
+          message: "I am a very slow joke that doesn't care about your search.",
+        },
       };
     });
   }

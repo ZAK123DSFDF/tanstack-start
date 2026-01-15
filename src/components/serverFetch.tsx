@@ -1,65 +1,55 @@
+// src/components/serverFetch.tsx
 import { use } from "react";
-import { EdenError, EdenResponse, ExtractEdenData } from "@/lib/eden/types";
 import * as React from "react";
+import { EdenResponse } from "@/lib/eden/types";
 
-interface ServerFetchProps<TFetcher extends () => Promise<any>> {
-  fetcher: TFetcher;
-  errorTitle?: string;
-  render: (
-    data: ExtractEdenData<Awaited<ReturnType<TFetcher>>>,
-  ) => React.ReactNode;
+// T is the actual shape of the "data" (e.g. { message: string })
+interface ServerFetchProps<T extends {}> {
+  fetcher: () => Promise<EdenResponse<T>>;
+  render: (data: T) => React.ReactNode;
+  renderEmpty?: () => React.ReactNode;
 }
 
-export function ServerFetch<TFetcher extends () => Promise<EdenResponse<any>>>({
+export function ServerFetch<T extends {}>({
   fetcher,
   render,
-  errorTitle = "Error",
-}: ServerFetchProps<TFetcher>) {
-  type TData = ExtractEdenData<Awaited<ReturnType<TFetcher>>>;
-
+  renderEmpty,
+}: ServerFetchProps<T>) {
   const res = use(fetcher());
-  console.log("ServerFetch res:", res);
-
-  let raw: any = null;
-
-  // -------- FIXED LOGIC ----------
-  if (res && typeof res === "object" && "ok" in res) {
-    raw = res; // full EdenResponse
-  } else if (res?.error?.value) {
-    raw = res.error.value;
-  } else {
-    raw = null;
-  }
-
-  console.log("ServerFetch raw:", raw);
-
-  if (!raw) {
-    const fallbackError: EdenError = {
-      ok: false,
-      message: "Unknown server response",
-      error: "Unknown",
-      status: 500,
-    };
-
+  console.log("ServerFetch response:", res.data);
+  // 1. Handle Error branch (TypeScript now knows this is EdenError)
+  if (!res.ok) {
     return (
       <div className="p-4 border border-red-300 bg-red-50 rounded-md">
-        <h2 className="text-xl text-red-600 font-semibold">{errorTitle}</h2>
-        <p className="text-red-500">{fallbackError.message}</p>
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl text-red-600 font-semibold">{res.error}</h2>
+          <span className="text-xs bg-red-200 px-2 py-1 rounded text-red-700">
+            {res.status}
+          </span>
+        </div>
+        <p className="text-red-500 mt-1">{res.message}</p>
+        {res.toast && (
+          <p className="text-xs italic text-red-400 mt-2">💡 {res.toast}</p>
+        )}
       </div>
     );
   }
+  const isEmpty = React.useMemo(() => {
+    if (!res.data) return true;
 
-  if (raw.ok !== true) {
-    const err = raw as EdenError;
+    if (Array.isArray(res.data)) return res.data.length === 0;
+    if (typeof res.data === "object") {
+      // Check for empty message if it's a joke object
+      if ("message" in res.data && !res.data.message) return true;
+      // Check for generic empty object {}
+      return Object.keys(res.data).length === 0;
+    }
+    return false;
+  }, [res.data]);
 
-    return (
-      <div className="p-4 border border-red-300 bg-red-50 rounded-md">
-        <h2 className="text-xl font-semibold text-red-600">{errorTitle}</h2>
-        <p className="text-red-500">{err.message}</p>
-      </div>
-    );
+  if (isEmpty) {
+    return renderEmpty ? <>{renderEmpty()}</> : <p>No data available.</p>;
   }
-
-  // SUCCESS CASE
-  return <>{render(raw.data as TData)}</>;
+  // 2. Success branch (TypeScript now knows res.data exists and is type T)
+  return <>{render(res.data)}</>;
 }

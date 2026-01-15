@@ -10,7 +10,10 @@ importers:
     dependencies:
       '@elysiajs/eden':
         specifier: ^1.4.5
-        version: 1.4.5(elysia@1.4.18(@sinclair/typebox@0.34.41)(exact-mirror@0.2.5(@sinclair/typebox@0.34.41))(file-type@21.1.1)(openapi-types@12.1.3)(typescript@5.9.3))
+        version: 1.4.5(elysia@1.4.18(@sinclair/typebox@0.34.47)(exact-mirror@0.2.5(@sinclair/typebox@0.34.47))(file-type@21.1.1)(openapi-types@12.1.3)(typescript@5.9.3))
+      '@sinclair/typebox':
+        specifier: ^0.34.47
+        version: 0.34.47
       '@tailwindcss/vite':
         specifier: ^4.0.6
         version: 4.1.17(vite@7.2.7(@types/node@22.19.2)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0))
@@ -46,13 +49,16 @@ importers:
         version: 2.1.1
       elysia:
         specifier: ^1.4.18
-        version: 1.4.18(@sinclair/typebox@0.34.41)(exact-mirror@0.2.5(@sinclair/typebox@0.34.41))(file-type@21.1.1)(openapi-types@12.1.3)(typescript@5.9.3)
+        version: 1.4.18(@sinclair/typebox@0.34.47)(exact-mirror@0.2.5(@sinclair/typebox@0.34.47))(file-type@21.1.1)(openapi-types@12.1.3)(typescript@5.9.3)
       lucide-react:
         specifier: ^0.544.0
         version: 0.544.0(react@19.2.1)
       nitro:
         specifier: latest
         version: 3.0.1-alpha.1(lru-cache@11.2.4)(rollup@4.53.3)(vite@7.2.7(@types/node@22.19.2)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0))
+      openapi-types:
+        specifier: ^12.1.3
+        version: 12.1.3
       react:
         specifier: ^19.2.0
         version: 19.2.1
@@ -71,6 +77,9 @@ importers:
       vite-tsconfig-paths:
         specifier: ^5.1.4
         version: 5.1.4(typescript@5.9.3)(vite@7.2.7(@types/node@22.19.2)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0))
+      zod:
+        specifier: ^4.3.5
+        version: 4.3.5
     devDependencies:
       '@tanstack/devtools-vite':
         specifier: ^0.3.11
@@ -967,8 +976,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@sinclair/typebox@0.34.41':
-    resolution: {integrity: sha512-6gS8pZzSXdyRHTIqoqSVknxolr1kzfy4/CeDnrzsVz8TTIWUbOBr6gnzOmTYJ3eXQNh4IYHIGi5aIL7sOZ2G/g==}
+  '@sinclair/typebox@0.34.47':
+    resolution: {integrity: sha512-ZGIBQ+XDvO5JQku9wmwtabcVTHJsgSWAHYtVuM9pBNNR5E88v6Jcj/llpmsjivig5X8A8HHOb4/mbEKPS5EvAw==}
 
   '@solid-primitives/event-listener@2.4.3':
     resolution: {integrity: sha512-h4VqkYFv6Gf+L7SQj+Y6puigL/5DIi7x5q07VZET7AWcS+9/G3WfIE9WheniHWJs51OEkRB43w6lDys5YeFceg==}
@@ -2500,6 +2509,9 @@ packages:
   zod@3.25.76:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
+  zod@4.3.5:
+    resolution: {integrity: sha512-k7Nwx6vuWx1IJ9Bjuf4Zt1PEllcwe7cls3VNzm4CQ1/hgtFUK2bRNG3rvnpPUhFjmqJKAKtjV576KnUkHocg/g==}
+
 snapshots:
 
   '@acemir/cssom@0.9.29': {}
@@ -2752,9 +2764,9 @@ snapshots:
 
   '@csstools/css-tokenizer@3.0.4': {}
 
-  '@elysiajs/eden@1.4.5(elysia@1.4.18(@sinclair/typebox@0.34.41)(exact-mirror@0.2.5(@sinclair/typebox@0.34.41))(file-type@21.1.1)(openapi-types@12.1.3)(typescript@5.9.3))':
+  '@elysiajs/eden@1.4.5(elysia@1.4.18(@sinclair/typebox@0.34.47)(exact-mirror@0.2.5(@sinclair/typebox@0.34.47))(file-type@21.1.1)(openapi-types@12.1.3)(typescript@5.9.3))':
     dependencies:
-      elysia: 1.4.18(@sinclair/typebox@0.34.41)(exact-mirror@0.2.5(@sinclair/typebox@0.34.41))(file-type@21.1.1)(openapi-types@12.1.3)(typescript@5.9.3)
+      elysia: 1.4.18(@sinclair/typebox@0.34.47)(exact-mirror@0.2.5(@sinclair/typebox@0.34.47))(file-type@21.1.1)(openapi-types@12.1.3)(typescript@5.9.3)
 
   '@emnapi/core@1.7.1':
     dependencies:
@@ -3135,7 +3147,7 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.53.3':
     optional: true
 
-  '@sinclair/typebox@0.34.41': {}
+  '@sinclair/typebox@0.34.47': {}
 
   '@solid-primitives/event-listener@2.4.3(solid-js@1.9.10)':
     dependencies:
@@ -3904,11 +3916,11 @@ snapshots:
 
   electron-to-chromium@1.5.267: {}
 
-  elysia@1.4.18(@sinclair/typebox@0.34.41)(exact-mirror@0.2.5(@sinclair/typebox@0.34.41))(file-type@21.1.1)(openapi-types@12.1.3)(typescript@5.9.3):
+  elysia@1.4.18(@sinclair/typebox@0.34.47)(exact-mirror@0.2.5(@sinclair/typebox@0.34.47))(file-type@21.1.1)(openapi-types@12.1.3)(typescript@5.9.3):
     dependencies:
-      '@sinclair/typebox': 0.34.41
+      '@sinclair/typebox': 0.34.47
       cookie: 1.1.1
-      exact-mirror: 0.2.5(@sinclair/typebox@0.34.41)
+      exact-mirror: 0.2.5(@sinclair/typebox@0.34.47)
       fast-decode-uri-component: 1.0.1
       file-type: 21.1.1
       memoirist: 0.4.0
@@ -3998,9 +4010,9 @@ snapshots:
     dependencies:
       '@types/estree': 1.0.8
 
-  exact-mirror@0.2.5(@sinclair/typebox@0.34.41):
+  exact-mirror@0.2.5(@sinclair/typebox@0.34.47):
     optionalDependencies:
-      '@sinclair/typebox': 0.34.41
+      '@sinclair/typebox': 0.34.47
 
   expect-type@1.3.0: {}
 
@@ -4725,3 +4737,5 @@ snapshots:
   yallist@3.1.1: {}
 
   zod@3.25.76: {}
+
+  zod@4.3.5: {}

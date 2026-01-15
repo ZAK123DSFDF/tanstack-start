@@ -18,12 +18,12 @@ export type EdenResponse<T> = { ok: true; status: number; data: T } | EdenError;
  * - res.data.data
  * - res.data
  */
-export type ExtractEdenData<T> = T extends { data?: { data?: infer U } }
-  ? U
-  : T extends { data?: infer U }
-    ? U
-    : unknown;
-
+// Update this in your types file
+export type ExtractEdenData<T> = T extends { data: infer U }
+  ? U extends { data: infer V }
+    ? NonNullable<V>
+    : NonNullable<U>
+  : never;
 /**
  * Extract the error payload returned by Eden/Elysia Treaty.
  * Supports:

@@ -1,34 +1,50 @@
 // src/components/JokeData.tsx
 
+import { useSearch } from "@tanstack/react-router";
+import { Route } from "@/routes/jokeServer.tsx";
+import { QueryFetch } from "@/components/queryFetch.tsx";
 import { Suspense } from "react";
-import { Route } from "@/routes/jokeServer";
-import { ServerFetch } from "@/components/serverFetch.tsx";
+
+function SearchJoke() {
+  const { query, category } = useSearch({ from: Route.fullPath });
+  const { joke1Promise } = Route.useLoaderData();
+  return (
+    <QueryFetch
+      options={{
+        queryKey: ["joke", "search", query, category],
+        queryFn: () => joke1Promise,
+      }}
+      render={(data) => <p style={{ fontSize: "18px" }}>{data.message}</p>}
+    />
+  );
+}
+
+function StaticJoke() {
+  const { joke2Promise } = Route.useLoaderData();
+  return (
+    <QueryFetch
+      options={{
+        queryKey: ["joke", "static"],
+        queryFn: () => joke2Promise,
+        staleTime: Infinity,
+      }}
+      render={(data) => <p style={{ fontSize: "18px" }}>{data.message}</p>}
+    />
+  );
+}
 
 export function JokeData() {
-  const { joke1, joke2 } = Route.useLoaderData();
-
   return (
     <>
-      <Suspense fallback={<p style={{ color: "blue" }}>Loading joke…</p>}>
-        <ServerFetch
-          fetcher={() => joke1}
-          errorTitle="Joke 1 Error"
-          render={(data) => (
-            <p style={{ marginTop: "10px", fontSize: "18px" }}>{data.setup}</p>
-          )}
-        />
-      </Suspense>
-
       <Suspense
-        fallback={<p style={{ color: "blue" }}>Loading second joke…</p>}
+        fallback={<p style={{ color: "blue" }}>Loading search result…</p>}
       >
-        <ServerFetch
-          fetcher={() => joke2}
-          errorTitle="Joke 2 Error"
-          render={(data) => (
-            <p style={{ marginTop: "10px", fontSize: "18px" }}>{data.setup}</p>
-          )}
-        />
+        <SearchJoke />
+      </Suspense>
+      <Suspense
+        fallback={<p style={{ color: "green" }}>Loading static joke…</p>}
+      >
+        <StaticJoke />
       </Suspense>
     </>
   );
