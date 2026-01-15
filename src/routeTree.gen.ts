@@ -9,19 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as JokeServerRouteImport } from './routes/jokeServer'
 import { Route as JokeRouteImport } from './routes/joke'
+import { Route as JokeMoveRouteRouteImport } from './routes/_jokeMove/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiSplatRouteImport } from './routes/api.$'
+import { Route as JokeMoveJokeOriginRouteImport } from './routes/_jokeMove/jokeOrigin'
+import { Route as JokeMoveJokeMoveRouteImport } from './routes/_jokeMove/jokeMove'
 
-const JokeServerRoute = JokeServerRouteImport.update({
-  id: '/jokeServer',
-  path: '/jokeServer',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const JokeRoute = JokeRouteImport.update({
   id: '/joke',
   path: '/joke',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JokeMoveRouteRoute = JokeMoveRouteRouteImport.update({
+  id: '/_jokeMove',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -34,55 +35,76 @@ const ApiSplatRoute = ApiSplatRouteImport.update({
   path: '/api/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const JokeMoveJokeOriginRoute = JokeMoveJokeOriginRouteImport.update({
+  id: '/jokeOrigin',
+  path: '/jokeOrigin',
+  getParentRoute: () => JokeMoveRouteRoute,
+} as any)
+const JokeMoveJokeMoveRoute = JokeMoveJokeMoveRouteImport.update({
+  id: '/jokeMove',
+  path: '/jokeMove',
+  getParentRoute: () => JokeMoveRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/joke': typeof JokeRoute
-  '/jokeServer': typeof JokeServerRoute
+  '/jokeMove': typeof JokeMoveJokeMoveRoute
+  '/jokeOrigin': typeof JokeMoveJokeOriginRoute
   '/api/$': typeof ApiSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/joke': typeof JokeRoute
-  '/jokeServer': typeof JokeServerRoute
+  '/jokeMove': typeof JokeMoveJokeMoveRoute
+  '/jokeOrigin': typeof JokeMoveJokeOriginRoute
   '/api/$': typeof ApiSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_jokeMove': typeof JokeMoveRouteRouteWithChildren
   '/joke': typeof JokeRoute
-  '/jokeServer': typeof JokeServerRoute
+  '/_jokeMove/jokeMove': typeof JokeMoveJokeMoveRoute
+  '/_jokeMove/jokeOrigin': typeof JokeMoveJokeOriginRoute
   '/api/$': typeof ApiSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/joke' | '/jokeServer' | '/api/$'
+  fullPaths: '/' | '/joke' | '/jokeMove' | '/jokeOrigin' | '/api/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/joke' | '/jokeServer' | '/api/$'
-  id: '__root__' | '/' | '/joke' | '/jokeServer' | '/api/$'
+  to: '/' | '/joke' | '/jokeMove' | '/jokeOrigin' | '/api/$'
+  id:
+    | '__root__'
+    | '/'
+    | '/_jokeMove'
+    | '/joke'
+    | '/_jokeMove/jokeMove'
+    | '/_jokeMove/jokeOrigin'
+    | '/api/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  JokeMoveRouteRoute: typeof JokeMoveRouteRouteWithChildren
   JokeRoute: typeof JokeRoute
-  JokeServerRoute: typeof JokeServerRoute
   ApiSplatRoute: typeof ApiSplatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/jokeServer': {
-      id: '/jokeServer'
-      path: '/jokeServer'
-      fullPath: '/jokeServer'
-      preLoaderRoute: typeof JokeServerRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/joke': {
       id: '/joke'
       path: '/joke'
       fullPath: '/joke'
       preLoaderRoute: typeof JokeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_jokeMove': {
+      id: '/_jokeMove'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof JokeMoveRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -99,13 +121,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_jokeMove/jokeOrigin': {
+      id: '/_jokeMove/jokeOrigin'
+      path: '/jokeOrigin'
+      fullPath: '/jokeOrigin'
+      preLoaderRoute: typeof JokeMoveJokeOriginRouteImport
+      parentRoute: typeof JokeMoveRouteRoute
+    }
+    '/_jokeMove/jokeMove': {
+      id: '/_jokeMove/jokeMove'
+      path: '/jokeMove'
+      fullPath: '/jokeMove'
+      preLoaderRoute: typeof JokeMoveJokeMoveRouteImport
+      parentRoute: typeof JokeMoveRouteRoute
+    }
   }
 }
 
+interface JokeMoveRouteRouteChildren {
+  JokeMoveJokeMoveRoute: typeof JokeMoveJokeMoveRoute
+  JokeMoveJokeOriginRoute: typeof JokeMoveJokeOriginRoute
+}
+
+const JokeMoveRouteRouteChildren: JokeMoveRouteRouteChildren = {
+  JokeMoveJokeMoveRoute: JokeMoveJokeMoveRoute,
+  JokeMoveJokeOriginRoute: JokeMoveJokeOriginRoute,
+}
+
+const JokeMoveRouteRouteWithChildren = JokeMoveRouteRoute._addFileChildren(
+  JokeMoveRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  JokeMoveRouteRoute: JokeMoveRouteRouteWithChildren,
   JokeRoute: JokeRoute,
-  JokeServerRoute: JokeServerRoute,
   ApiSplatRoute: ApiSplatRoute,
 }
 export const routeTree = rootRouteImport

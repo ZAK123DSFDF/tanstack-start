@@ -1,12 +1,12 @@
 // src/components/JokeData.tsx
 
 import { useSearch } from "@tanstack/react-router";
-import { Route } from "@/routes/jokeServer.tsx";
+import { Route } from "@/routes/_jokeMove/jokeMove.tsx";
 import { QueryFetch } from "@/components/queryFetch.tsx";
 import { Suspense } from "react";
 
 function SearchJoke() {
-  const { query, category } = useSearch({ from: Route.fullPath });
+  const { query, category } = useSearch({ from: Route.id });
   const { joke1Promise } = Route.useLoaderData();
   return (
     <QueryFetch

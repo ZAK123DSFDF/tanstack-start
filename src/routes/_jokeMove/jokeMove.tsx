@@ -21,7 +21,7 @@ const jokeSearchSchema = z.object({
   category: z.enum(JOKE_CATEGORIES).optional().catch(DEFAULT_JOKE_CATEGORY),
 });
 
-export const Route = createFileRoute("/jokeServer")({
+export const Route = createFileRoute("/_jokeMove/jokeMove")({
   validateSearch: (search) => jokeSearchSchema.parse(search),
   loaderDeps: ({ search }) => ({
     query: search.query,
@@ -52,7 +52,7 @@ export const Route = createFileRoute("/jokeServer")({
 // -----------------------------
 function JokePage() {
   const navigate = useNavigate({ from: Route.fullPath });
-  const search = useSearch({ from: Route.fullPath });
+  const search = useSearch({ from: Route.id });
 
   // Local state for the input to allow smooth typing
   const [tempQuery, setTempQuery] = useState(search.query ?? "");
