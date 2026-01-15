@@ -32,11 +32,12 @@ export const Route = createFileRoute("/_jokeMove/jokeMove")({
       queryKey: ["joke", "search", query, category],
       queryFn: () =>
         cleanTreaty(api().joke.random.get({ query: { query, category } })),
+      staleTime: 0,
     });
     const staticJokeOptions = queryOptions({
       queryKey: ["joke", "static"],
       queryFn: () => cleanTreaty(api().joke.random2.get()),
-      staleTime: Infinity,
+      staleTime: 0,
     });
     const staticPromise = queryClient.ensureQueryData(staticJokeOptions);
     return {

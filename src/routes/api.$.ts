@@ -8,11 +8,37 @@ import {
   DEFAULT_JOKE_CATEGORY,
   JOKE_CATEGORIES,
 } from "@/lib/constants/jokes.ts";
+import { throwHttpError } from "@/lib/elysia/throwHttpError.ts";
 const joke = new JokeController();
+export class GlobalService {
+  async getSystemStatus() {
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    const success = true;
+    if (!success) {
+      throw throwHttpError({
+        status: 400,
+        error: "DemoError",
+        toast: "This is an intentional error!",
+        message: "Something went wrong in the demo error endpoint.",
+      });
+    }
+
+    return {
+      ok: true,
+      data: {
+        status: "All systems operational",
+        version: "2.0.26",
+        maintenance: false,
+      },
+    };
+  }
+}
+const globalService = new GlobalService();
 const app = new Elysia({
   prefix: "/api",
 })
   .use(errorPlugin)
+  .get("/status", () => globalService.getSystemStatus())
   .get("/joke/random", joke.random, {
     query: t.Object({
       query: t.Optional(t.String()),
