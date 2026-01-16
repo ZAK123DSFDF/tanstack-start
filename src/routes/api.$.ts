@@ -50,7 +50,10 @@ const app = new Elysia({
       ),
     }),
   })
-  .get("/joke/random2", joke.random2);
+  .get("/joke/random2", joke.random2)
+  .post("/joke/success-demo", joke.success)
+  .post("/joke/error-demo", joke.error)
+  .post("/joke/reset-demo", joke.reset);
 
 const handle = ({ request }: { request: Request }) => app.fetch(request);
 

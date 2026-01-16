@@ -11,4 +11,5 @@ export class JokeController {
 
   success = () => this.service.successDemo();
   error = () => this.service.errorDemo();
+  reset = () => this.service.resetDemo();
 }

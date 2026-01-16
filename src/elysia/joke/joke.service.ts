@@ -2,6 +2,19 @@ import { throwHttpError } from "@/lib/elysia/throwHttpError";
 import { handleAction } from "@/lib/elysia/hndleAction";
 
 export class JokeService {
+  private serverVersion = 1;
+  async resetDemo() {
+    return handleAction("ResetDemo", async () => {
+      this.serverVersion = 1; // 🟢 Reset the "Database"
+
+      return {
+        ok: true,
+        status: 200,
+        toast: "Server state has been reset to Version 1",
+        data: { version: 1 },
+      };
+    });
+  }
   async redirectToDemo() {
     return handleAction("RedirectToDemo", async () => {
       return {
@@ -15,11 +28,15 @@ export class JokeService {
   }
   async successDemo() {
     return handleAction("SuccessDemo", async () => {
+      // 🚀 Simulate an update to the database
+      this.serverVersion += 1;
+
       return {
         ok: true,
         status: 200,
+        toast: `Server updated to version ${this.serverVersion}!`,
         data: {
-          message: "This is a successful action!",
+          version: this.serverVersion,
         },
       };
     });
@@ -40,20 +57,10 @@ export class JokeService {
     return handleAction("GetRandomJoke", async () => {
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      const shouldError = false;
-      if (shouldError) {
-        throw throwHttpError({
-          status: 500,
-          error: "DatabaseError",
-          message: "The joke database is currently offline.",
-          toast: "Could not fetch jokes 😢",
-        });
-      }
-
-      // Logic using the query and category
+      // 🟢 Use the serverVersion instead of a random number
       const jokeText = query
-        ? `Here is a ${category || "general"} joke about "${query}": Why did the ${query} cross the road?`
-        : "Why don't scientists trust atoms? Because they make up everything!";
+        ? `[Server v${this.serverVersion}] Search result for "${query}"`
+        : `[Server v${this.serverVersion}] Why don't scientists trust atoms?`;
 
       return {
         ok: true,
@@ -65,14 +72,17 @@ export class JokeService {
       };
     });
   }
+
   async getSlowJoke() {
     return handleAction("GetSlowJoke", async () => {
-      await new Promise((resolve) => setTimeout(resolve, 4000)); // 4 seconds!
+      await new Promise((resolve) => setTimeout(resolve, 4000));
+
       return {
         ok: true,
         status: 200,
         data: {
-          message: "I am a very slow joke that doesn't care about your search.",
+          // 🟢 Reflect the same global version
+          message: `[Server v${this.serverVersion}] Static slow joke content.`,
         },
       };
     });

@@ -12,6 +12,7 @@ import appCss from "../styles.css?url";
 
 import type { QueryClient } from "@tanstack/react-query";
 import { ReactNode } from "react";
+import { Toaster } from "sonner";
 
 interface MyRouterContext {
   queryClient: QueryClient;
@@ -63,6 +64,7 @@ function RootDocument({ children }: { children: ReactNode }) {
           ]}
         />
         <Scripts />
+        <Toaster richColors closeButton position="top-right" />
       </body>
     </html>
   );
