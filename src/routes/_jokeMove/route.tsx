@@ -21,7 +21,7 @@ function getClientCookie(name: string): string | null {
   );
 }
 const getAuthToken = createServerFn({ method: "GET" }).handler(async () => {
-  return getCookie("");
+  return getCookie("tanstackname");
 });
 export const Route = createFileRoute("/_jokeMove")({
   shouldReload: false,
@@ -74,7 +74,7 @@ function LayoutComponent() {
       // ✅ remove cookie every 2 seconds
       document.cookie = "tanstackname=; Max-Age=0; path=/; SameSite=Lax";
       checkAuth();
-    }, 200000);
+    }, 2000000);
 
     return () => clearInterval(interval);
   }, [navigate]);
