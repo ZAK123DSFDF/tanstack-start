@@ -13,6 +13,7 @@ import { Route as JokeRouteImport } from './routes/joke'
 import { Route as JokeMoveRouteRouteImport } from './routes/_jokeMove/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiSplatRouteImport } from './routes/api.$'
+import { Route as JokeMoveLoginRouteImport } from './routes/_jokeMove/login'
 import { Route as JokeMoveJokeOriginRouteImport } from './routes/_jokeMove/jokeOrigin'
 import { Route as JokeMoveJokeMoveRouteImport } from './routes/_jokeMove/jokeMove'
 
@@ -35,6 +36,11 @@ const ApiSplatRoute = ApiSplatRouteImport.update({
   path: '/api/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const JokeMoveLoginRoute = JokeMoveLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => JokeMoveRouteRoute,
+} as any)
 const JokeMoveJokeOriginRoute = JokeMoveJokeOriginRouteImport.update({
   id: '/jokeOrigin',
   path: '/jokeOrigin',
@@ -51,6 +57,7 @@ export interface FileRoutesByFullPath {
   '/joke': typeof JokeRoute
   '/jokeMove': typeof JokeMoveJokeMoveRoute
   '/jokeOrigin': typeof JokeMoveJokeOriginRoute
+  '/login': typeof JokeMoveLoginRoute
   '/api/$': typeof ApiSplatRoute
 }
 export interface FileRoutesByTo {
@@ -58,6 +65,7 @@ export interface FileRoutesByTo {
   '/joke': typeof JokeRoute
   '/jokeMove': typeof JokeMoveJokeMoveRoute
   '/jokeOrigin': typeof JokeMoveJokeOriginRoute
+  '/login': typeof JokeMoveLoginRoute
   '/api/$': typeof ApiSplatRoute
 }
 export interface FileRoutesById {
@@ -67,13 +75,14 @@ export interface FileRoutesById {
   '/joke': typeof JokeRoute
   '/_jokeMove/jokeMove': typeof JokeMoveJokeMoveRoute
   '/_jokeMove/jokeOrigin': typeof JokeMoveJokeOriginRoute
+  '/_jokeMove/login': typeof JokeMoveLoginRoute
   '/api/$': typeof ApiSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/joke' | '/jokeMove' | '/jokeOrigin' | '/api/$'
+  fullPaths: '/' | '/joke' | '/jokeMove' | '/jokeOrigin' | '/login' | '/api/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/joke' | '/jokeMove' | '/jokeOrigin' | '/api/$'
+  to: '/' | '/joke' | '/jokeMove' | '/jokeOrigin' | '/login' | '/api/$'
   id:
     | '__root__'
     | '/'
@@ -81,6 +90,7 @@ export interface FileRouteTypes {
     | '/joke'
     | '/_jokeMove/jokeMove'
     | '/_jokeMove/jokeOrigin'
+    | '/_jokeMove/login'
     | '/api/$'
   fileRoutesById: FileRoutesById
 }
@@ -121,6 +131,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_jokeMove/login': {
+      id: '/_jokeMove/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof JokeMoveLoginRouteImport
+      parentRoute: typeof JokeMoveRouteRoute
+    }
     '/_jokeMove/jokeOrigin': {
       id: '/_jokeMove/jokeOrigin'
       path: '/jokeOrigin'
@@ -141,11 +158,13 @@ declare module '@tanstack/react-router' {
 interface JokeMoveRouteRouteChildren {
   JokeMoveJokeMoveRoute: typeof JokeMoveJokeMoveRoute
   JokeMoveJokeOriginRoute: typeof JokeMoveJokeOriginRoute
+  JokeMoveLoginRoute: typeof JokeMoveLoginRoute
 }
 
 const JokeMoveRouteRouteChildren: JokeMoveRouteRouteChildren = {
   JokeMoveJokeMoveRoute: JokeMoveJokeMoveRoute,
   JokeMoveJokeOriginRoute: JokeMoveJokeOriginRoute,
+  JokeMoveLoginRoute: JokeMoveLoginRoute,
 }
 
 const JokeMoveRouteRouteWithChildren = JokeMoveRouteRoute._addFileChildren(

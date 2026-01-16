@@ -12,7 +12,7 @@ import { throwHttpError } from "@/lib/elysia/throwHttpError.ts";
 const joke = new JokeController();
 export class GlobalService {
   async getSystemStatus() {
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 200));
     const success = true;
     if (!success) {
       throw throwHttpError({
