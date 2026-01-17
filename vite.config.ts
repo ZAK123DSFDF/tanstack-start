@@ -6,6 +6,9 @@ import viteTsConfigPaths from "vite-tsconfig-paths";
 import tailwindcss from "@tailwindcss/vite";
 import { cloudflare } from "@cloudflare/vite-plugin";
 const config = defineConfig({
+  ssr: {
+    external: ["cloudflare:workers"],
+  },
   plugins: [
     devtools(),
     viteTsConfigPaths({
@@ -18,6 +21,11 @@ const config = defineConfig({
       viteEnvironment: { name: "ssr" },
     }),
   ],
+  build: {
+    rollupOptions: {
+      external: ["cloudflare:workers"],
+    },
+  },
 });
 
 export default config;
