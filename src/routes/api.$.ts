@@ -104,5 +104,8 @@ export const Route = createFileRoute("/api/$")({
 export const api = createIsomorphicFn()
   .server(() => treaty(app).api)
   .client(() => {
-    return treaty<typeof app>("localhost:3000").api;
+    const url =
+      process.env.NODE_ENV === "production" ? "" : "http://localhost:3000";
+
+    return treaty<typeof app>(url).api;
   });
