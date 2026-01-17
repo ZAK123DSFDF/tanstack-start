@@ -1,9 +1,11 @@
 // src/lib/cloudflare.ts
 import type { KVNamespace, D1Database } from "@cloudflare/workers-types";
-
+import { Redis } from "@upstash/redis/cloudflare";
 export interface CloudflareEnv {
   MY_KV: KVNamespace;
   DB?: D1Database;
+  UPSTASH_REDIS_REST_URL: string;
+  UPSTASH_REDIS_REST_TOKEN: string;
 }
 
 // 1. Local Mock Storage
@@ -32,6 +34,8 @@ async function getEnv(): Promise<CloudflareEnv | null> {
     // Locally, return the mock immediately.
     // Vite will never try to resolve the import below.
     return {
+      UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
+      UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
       MY_KV: localMockKV,
     } as CloudflareEnv;
   } else {
@@ -41,7 +45,11 @@ async function getEnv(): Promise<CloudflareEnv | null> {
       return cf.env as CloudflareEnv;
     } catch (e) {
       console.error("Failed to load Cloudflare Workers env", e);
-      return { MY_KV: localMockKV } as CloudflareEnv;
+      return {
+        MY_KV: localMockKV,
+        UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
+        UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
+      } as CloudflareEnv;
     }
   }
 }
@@ -54,4 +62,13 @@ export async function getKV() {
 export async function getDB() {
   const env = await getEnv();
   return env?.DB ?? null;
+}
+export async function getRedis() {
+  const env = await getEnv();
+  if (!env) return null;
+
+  if (process.env.NODE_ENV === "development") {
+    return Redis.fromEnv();
+  }
+  return Redis.fromEnv(env);
 }
