@@ -6,24 +6,38 @@ import { treaty } from "@elysiajs/eden";
 import { JokeController } from "@/elysia/joke/joke.controller";
 import { errorPlugin } from "@/lib/elysia/error-plugin";
 import { DEFAULT_JOKE_CATEGORY, JOKE_CATEGORIES } from "@/lib/constants/jokes";
+import { env as cfEnv } from "cloudflare:workers";
 
 const jokeControl = new JokeController();
 
+/* ---------- Elysia Instance ---------- */
 const app = new Elysia({
   prefix: "/api",
   aot: false,
   adapter: CloudflareAdapter,
 })
   .use(errorPlugin)
-  .get("/kv-test", async (ctx) => {
-    const env = (ctx as any).env;
+  .get("/kv-test", async () => {
+    const kv = (cfEnv as any).MY_KV;
+
+    if (!kv) {
+      return {
+        success: false,
+        error: "MY_KV not found in cloudflare:workers import",
+        availableEnvKeys: Object.keys(cfEnv),
+      };
+    }
+
+    const testKey = "debug_check";
+    const testValue = `Checked at ${new Date().toISOString()}`;
+
+    await kv.put(testKey, testValue);
+    const result = await kv.get(testKey);
+
     return {
-      success: false,
-      message: "Diagnostic Mode",
-      hasEnvObject: !!env,
-      hasMyKV: !!env?.MY_KV,
-      allContextKeys: Object.keys(ctx),
-      requestHasEnv: !!(ctx.request as any).env,
+      success: true,
+      message: "KV Direct Import Success!",
+      data: result,
     };
   })
   .get("/status", () => ({
@@ -46,21 +60,11 @@ const app = new Elysia({
       .post("/error-demo", () => jokeControl.error()),
   );
 
-async function handle(ctx: {
-  request: Request;
-  [key: string]: any;
-}): Promise<Response> {
-  const { request } = ctx;
-  const env = ctx.context?.cloudflare?.env || ctx.env || {};
-  if (!env.MY_KV) {
-    console.error(
-      "Binding still missing. Keys available in ctx.context:",
-      ctx.context ? Object.keys(ctx.context) : "null",
-    );
-  }
-
-  return (app.fetch as any)(request, env);
+/* ---------- Handler ---------- */
+async function handle(ctx: { request: Request }): Promise<Response> {
+  return (app.fetch as any)(ctx.request, cfEnv);
 }
+
 export const Route = createFileRoute("/api/$")({
   server: {
     handlers: {
@@ -73,6 +77,7 @@ export const Route = createFileRoute("/api/$")({
   },
 });
 
+/* ---------- Client ---------- */
 export const api = createIsomorphicFn()
   .server(() => treaty(app).api)
   .client(() => {
