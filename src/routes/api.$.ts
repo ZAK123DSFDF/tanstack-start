@@ -9,17 +9,12 @@ import { DEFAULT_JOKE_CATEGORY, JOKE_CATEGORIES } from "@/lib/constants/jokes";
 
 const jokeControl = new JokeController();
 
-/* ---------- Elysia Instance ---------- */
 const app = new Elysia({
   prefix: "/api",
-  aot: false, // Required for Cloudflare
+  aot: false,
   adapter: CloudflareAdapter,
 })
   .use(errorPlugin)
-  .derive(({ request }) => {
-    // We don't initialize env here anymore, we pass it in .fetch()
-    return { url: request.url };
-  })
   .get("/status", () => ({
     ok: true,
     data: { status: "Operational", version: "2.0.26" },
@@ -34,33 +29,17 @@ const app = new Elysia({
           ),
         }),
       })
-      .get("/random2", (ctx) => jokeControl.random2(ctx))
-      .post("/success-demo", (ctx) => jokeControl.success(ctx))
-      .post("/reset-demo", (ctx) => jokeControl.reset(ctx)),
+      .get("/random2", () => jokeControl.random2())
+      .post("/success-demo", () => jokeControl.success())
+      .post("/reset-demo", () => jokeControl.reset())
+      .post("/error-demo", () => jokeControl.error()),
   );
 
 async function handle(ctx: any): Promise<Response> {
-  const { request } = ctx;
-
-  // 1. TanStack/Vinxi often nest the Cloudflare env here
-  // We check multiple fallback locations to find the real MY_KV
-  const env =
-    ctx.env ||
-    ctx.context?.cloudflare?.env ||
-    (globalThis as any).process?.env || // Fallback for some adapter types
-    {};
-
-  // 2. DEBUG LOG (Check your Cloudflare logs to see what's actually there)
-  if (!env?.MY_KV) {
-    console.error("❌ PRODUCTION ERROR: MY_KV is missing from all contexts!", {
-      ctxKeys: Object.keys(ctx),
-      hasCloudflare: !!ctx.context?.cloudflare,
-    });
-  }
-
-  // 3. Force-pass the discovered env to Elysia
-  return (app.fetch as any)(request, env);
+  // Simple pass-through for TanStack Start
+  return (app.fetch as any)(ctx.request);
 }
+
 export const Route = createFileRoute("/api/$")({
   server: {
     handlers: {
@@ -73,7 +52,6 @@ export const Route = createFileRoute("/api/$")({
   },
 });
 
-/* ---------- Client Utilities ---------- */
 export const api = createIsomorphicFn()
   .server(() => treaty(app).api)
   .client(() => {
