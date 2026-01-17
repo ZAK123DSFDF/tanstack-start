@@ -3,7 +3,6 @@ import { Elysia, t } from "elysia";
 import { createFileRoute } from "@tanstack/react-router";
 import { createIsomorphicFn } from "@tanstack/react-start";
 import { treaty } from "@elysiajs/eden";
-import { CloudflareAdapter } from "elysia/adapter/cloudflare-worker";
 import { JokeController } from "@/elysia/joke/joke.controller.ts";
 import { errorPlugin } from "@/lib/elysia/error-plugin.ts";
 import {
@@ -41,29 +40,8 @@ const globalService = new GlobalService();
 /* ---------- Elysia app ---------- */
 const app = new Elysia({
   prefix: "/api",
-  adapter: CloudflareAdapter,
 })
   .use(errorPlugin)
-  .derive(({ request }) => {
-    console.log(`[${request.method}] ${request.url}`);
-    return {
-      env: {} as CloudflareEnv,
-    };
-  })
-  .get("/kv-check", async ({ env }) => {
-    // If our 'handle' passed env correctly, this will work
-    if (!env?.MY_KV) {
-      return { error: "KV Binding not found in env" };
-    }
-
-    await env.MY_KV.put("test-key", "It works!");
-    const value = await env.MY_KV.get("test-key");
-
-    return {
-      status: "Success",
-      retrievedValue: value,
-    };
-  })
   .get("/status", () => globalService.getSystemStatus())
   .get("/joke/random", joke.random, {
     query: t.Object({
