@@ -53,16 +53,8 @@ async function handle(ctx: {
 }): Promise<Response> {
   const { request } = ctx;
   let runtimeEnv: any = {};
-  try {
-    runtimeEnv =
-      ctx.context?.cloudflare?.env || (globalThis as any).process?.env || {};
-    if (!runtimeEnv.MY_KV) {
-      const cf = await import("cloudflare:workers");
-      runtimeEnv = cf.env;
-    }
-  } catch (e) {
-    console.error("KV Discovery failed, but continuing...", e);
-  }
+  const cf = await import("cloudflare:workers");
+  runtimeEnv = cf.env;
   return (app.fetch as any)(request, runtimeEnv);
 }
 export const Route = createFileRoute("/api/$")({
