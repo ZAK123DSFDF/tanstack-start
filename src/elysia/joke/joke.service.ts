@@ -1,23 +1,14 @@
 // src/elysia/joke/joke.service.ts
 import { throwHttpError } from "@/lib/elysia/throwHttpError";
 import { handleAction } from "@/lib/elysia/hndleAction";
+import { getKV } from "@/lib/cloudflare.ts";
 
 export class JokeService {
   private KV_KEY = "server_version";
 
-  // Helper to get the KV binding
-  private async getKV() {
-    try {
-      const { env } = await import("cloudflare:workers");
-      return (env as any).MY_KV;
-    } catch {
-      return null;
-    }
-  }
-
   async resetDemo() {
     return handleAction("ResetDemo", async () => {
-      const kv = await this.getKV();
+      const kv = await getKV();
       if (kv) await kv.put(this.KV_KEY, "1");
 
       return {
@@ -31,7 +22,7 @@ export class JokeService {
 
   async successDemo() {
     return handleAction("SuccessDemo", async () => {
-      const kv = await this.getKV();
+      const kv = await getKV();
       let currentVersion = 1;
 
       if (kv) {
@@ -51,7 +42,7 @@ export class JokeService {
 
   async getRandomJoke(query?: string, category?: string) {
     return handleAction("GetRandomJoke", async () => {
-      const kv = await this.getKV();
+      const kv = await getKV();
       const version = (await kv?.get(this.KV_KEY)) || "1";
 
       await new Promise((r) => setTimeout(r, 1000));
@@ -70,7 +61,7 @@ export class JokeService {
 
   async getSlowJoke() {
     return handleAction("GetSlowJoke", async () => {
-      const kv = await this.getKV();
+      const kv = await getKV();
       const version = (await kv?.get(this.KV_KEY)) || "1";
 
       await new Promise((r) => setTimeout(r, 2000));
