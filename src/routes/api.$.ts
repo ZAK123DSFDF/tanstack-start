@@ -83,7 +83,9 @@ export const api = createIsomorphicFn()
   .server(() => treaty(app).api)
   .client(() => {
     const url =
-      process.env.NODE_ENV === "production" ? "" : "http://localhost:3000";
+      process.env.NODE_ENV === "production"
+        ? "https://tanstack-start-six.vercel.app"
+        : "http://localhost:3000";
 
     return treaty<typeof app>(url).api;
   });
