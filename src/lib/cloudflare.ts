@@ -3,40 +3,44 @@ import type { KVNamespace, D1Database } from "@cloudflare/workers-types";
 
 export interface CloudflareEnv {
   MY_KV: KVNamespace;
-  DB?: D1Database; // Optional, in case you haven't added it yet
+  DB?: D1Database;
 }
 
-/**
- * Internal helper to get the raw environment object with types.
- */
+// 1. Move storage to a private variable in the module scope
+const _storage = new Map<string, string>();
+
+// 2. Define the mock using the external variable (no 'this' needed)
+const localMockKV: KVNamespace = {
+  get: async (key: string) => _storage.get(key) || null,
+  put: async (key: string, value: string) => {
+    _storage.set(key, value);
+  },
+  delete: async (key: string) => {
+    _storage.delete(key);
+  },
+} as any;
+
 async function getEnv(): Promise<CloudflareEnv | null> {
+  if (typeof window !== "undefined") return null;
+
   try {
-    // Safety check for browser execution
-    if (typeof window !== "undefined") return null;
-
-    // Dynamically import the virtual module
+    // Attempting to load the virtual module
     const cf = await import("cloudflare:workers");
-
-    // Cast to our known interface
-    return cf.env as CloudflareEnv;
+    return (cf as any).env as CloudflareEnv;
   } catch (error) {
-    console.error("Cloudflare environment access failed:", error);
-    return null;
+    // Fallback for local Vite dev
+    return {
+      MY_KV: localMockKV,
+    } as CloudflareEnv;
   }
 }
 
-/**
- * Reusable helper for KV access
- */
-export async function getKV(): Promise<KVNamespace | null> {
+export async function getKV() {
   const env = await getEnv();
   return env?.MY_KV ?? null;
 }
 
-/**
- * Reusable helper for D1 Database access
- */
-export async function getDB(): Promise<D1Database | null> {
+export async function getDB() {
   const env = await getEnv();
   return env?.DB ?? null;
 }
