@@ -18,9 +18,6 @@ const config = defineConfig({
     tanstackStart(),
     viteReact(),
   ],
-  optimizeDeps: {
-    exclude: ["cloudflare:workers"],
-  },
   build: {
     rollupOptions: {
       external: ["cloudflare:workers"],

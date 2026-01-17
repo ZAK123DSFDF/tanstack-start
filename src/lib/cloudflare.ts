@@ -6,11 +6,10 @@ export interface CloudflareEnv {
   DB?: D1Database;
 }
 
-// 1. Move storage to a private variable in the module scope
+// 1. Local Mock Storage
 const _storage = new Map<string, string>();
 
-// 2. Define the mock using the external variable (no 'this' needed)
-const localMockKV: KVNamespace = {
+const localMockKV = {
   get: async (key: string) => _storage.get(key) || null,
   put: async (key: string, value: string) => {
     _storage.set(key, value);
@@ -18,20 +17,32 @@ const localMockKV: KVNamespace = {
   delete: async (key: string) => {
     _storage.delete(key);
   },
-} as any;
+  // Add other KV methods as needed for types
+} as unknown as KVNamespace;
 
+/**
+ * Environment Switcher
+ */
 async function getEnv(): Promise<CloudflareEnv | null> {
+  // 1. Safety check for Browser
   if (typeof window !== "undefined") return null;
 
-  try {
-    // Attempting to load the virtual module
-    const cf = await import("cloudflare:workers");
-    return (cf as any).env as CloudflareEnv;
-  } catch (error) {
-    // Fallback for local Vite dev
+  // 2. Choose method based on environment
+  if (process.env.NODE_ENV === "development") {
+    // Locally, return the mock immediately.
+    // Vite will never try to resolve the import below.
     return {
       MY_KV: localMockKV,
     } as CloudflareEnv;
+  } else {
+    try {
+      // Production (Cloudflare Worker runtime)
+      const cf = await import("cloudflare:workers");
+      return cf.env as CloudflareEnv;
+    } catch (e) {
+      console.error("Failed to load Cloudflare Workers env", e);
+      return { MY_KV: localMockKV } as CloudflareEnv;
+    }
   }
 }
 
