@@ -80,12 +80,14 @@ const app = new Elysia({
 interface CloudflareEnv {
   MY_KV: KVNamespace;
 }
-/* ---------- Adapter for TanStack‑Start ---------- */
-// tiny wrapper that matches the expected signature
 async function handle(ctx: any): Promise<Response> {
+  // TanStack Start provides 'request' and 'env' in the context
   const { request, env } = ctx as { request: Request; env: CloudflareEnv };
+
+  // We MUST pass 'env' into app.fetch so Elysia's derive() can see it
   return (app.fetch as any)(request, env);
 }
+
 /* ---------- TanStack‑Start route ---------- */
 export const Route = createFileRoute("/api/$")({
   server: {
@@ -99,13 +101,8 @@ export const Route = createFileRoute("/api/$")({
   },
 });
 
-/* ---------- Eden client side (optional) ---------- */
 export const api = createIsomorphicFn()
-  .server(() => treaty(app))
+  .server(() => treaty(app).api)
   .client(() => {
-    const base =
-      typeof window !== "undefined"
-        ? window.location.origin
-        : "http://localhost:3000";
-    return treaty<typeof app>(base);
+    return treaty<typeof app>("").api;
   });
