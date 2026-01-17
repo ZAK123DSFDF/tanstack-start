@@ -1,7 +1,9 @@
+// src/routes/api.$.ts
 import { Elysia, t } from "elysia";
-import { treaty } from "@elysiajs/eden";
 import { createFileRoute } from "@tanstack/react-router";
 import { createIsomorphicFn } from "@tanstack/react-start";
+import { treaty } from "@elysiajs/eden";
+import { CloudflareAdapter } from "elysia/adapter/cloudflare-worker";
 import { JokeController } from "@/elysia/joke/joke.controller.ts";
 import { errorPlugin } from "@/lib/elysia/error-plugin.ts";
 import {
@@ -9,10 +11,12 @@ import {
   JOKE_CATEGORIES,
 } from "@/lib/constants/jokes.ts";
 import { throwHttpError } from "@/lib/elysia/throwHttpError.ts";
+
 const joke = new JokeController();
-export class GlobalService {
+
+class GlobalService {
   async getSystemStatus() {
-    await new Promise((resolve) => setTimeout(resolve, 200));
+    await new Promise((r) => setTimeout(r, 200));
     const success = true;
     if (!success) {
       throw throwHttpError({
@@ -22,7 +26,6 @@ export class GlobalService {
         message: "Something went wrong in the demo error endpoint.",
       });
     }
-
     return {
       ok: true,
       data: {
@@ -34,19 +37,39 @@ export class GlobalService {
   }
 }
 const globalService = new GlobalService();
+
+/* ---------- Elysia app ---------- */
 const app = new Elysia({
   prefix: "/api",
+  adapter: CloudflareAdapter,
 })
   .use(errorPlugin)
+  .derive(({ request }) => {
+    console.log(`[${request.method}] ${request.url}`);
+    return {
+      env: {} as CloudflareEnv,
+    };
+  })
+  .get("/kv-check", async ({ env }) => {
+    // If our 'handle' passed env correctly, this will work
+    if (!env?.MY_KV) {
+      return { error: "KV Binding not found in env" };
+    }
+
+    await env.MY_KV.put("test-key", "It works!");
+    const value = await env.MY_KV.get("test-key");
+
+    return {
+      status: "Success",
+      retrievedValue: value,
+    };
+  })
   .get("/status", () => globalService.getSystemStatus())
   .get("/joke/random", joke.random, {
     query: t.Object({
       query: t.Optional(t.String()),
       category: t.Optional(
-        t.String({
-          default: DEFAULT_JOKE_CATEGORY,
-          enum: JOKE_CATEGORIES, // 👈 Shared array
-        }),
+        t.String({ default: DEFAULT_JOKE_CATEGORY, enum: JOKE_CATEGORIES }),
       ),
     }),
   })
@@ -54,9 +77,16 @@ const app = new Elysia({
   .post("/joke/success-demo", joke.success)
   .post("/joke/error-demo", joke.error)
   .post("/joke/reset-demo", joke.reset);
-
-const handle = ({ request }: { request: Request }) => app.fetch(request);
-
+interface CloudflareEnv {
+  MY_KV: KVNamespace;
+}
+/* ---------- Adapter for TanStack‑Start ---------- */
+// tiny wrapper that matches the expected signature
+async function handle(ctx: any): Promise<Response> {
+  const { request, env } = ctx as { request: Request; env: CloudflareEnv };
+  return (app.fetch as any)(request, env);
+}
+/* ---------- TanStack‑Start route ---------- */
 export const Route = createFileRoute("/api/$")({
   server: {
     handlers: {
@@ -68,6 +98,14 @@ export const Route = createFileRoute("/api/$")({
     },
   },
 });
+
+/* ---------- Eden client side (optional) ---------- */
 export const api = createIsomorphicFn()
-  .server(() => treaty(app).api)
-  .client(() => treaty<typeof app>("localhost:3000").api);
+  .server(() => treaty(app))
+  .client(() => {
+    const base =
+      typeof window !== "undefined"
+        ? window.location.origin
+        : "http://localhost:3000";
+    return treaty<typeof app>(base);
+  });
