@@ -10,6 +10,7 @@ import {
   JOKE_CATEGORIES,
 } from "@/lib/constants/jokes.ts";
 import { throwHttpError } from "@/lib/elysia/throwHttpError.ts";
+import { CloudflareAdapter } from "elysia/adapter/cloudflare-worker";
 
 const joke = new JokeController();
 
@@ -40,8 +41,29 @@ const globalService = new GlobalService();
 /* ---------- Elysia app ---------- */
 const app = new Elysia({
   prefix: "/api",
+  adapter: CloudflareAdapter,
 })
   .use(errorPlugin)
+  .derive(({ request }) => {
+    console.log(`[${request.method}] ${request.url}`);
+    return {
+      env: {} as CloudflareEnv,
+    };
+  })
+  .get("/kv-check", async ({ env }) => {
+    // If our 'handle' passed env correctly, this will work
+    if (!env?.MY_KV) {
+      return { error: "KV Binding not found in env" };
+    }
+
+    await env.MY_KV.put("test-key", "It works!");
+    const value = await env.MY_KV.get("test-key");
+
+    return {
+      status: "Success",
+      retrievedValue: value,
+    };
+  })
   .get("/status", () => globalService.getSystemStatus())
   .get("/joke/random", joke.random, {
     query: t.Object({
@@ -84,7 +106,7 @@ export const api = createIsomorphicFn()
   .client(() => {
     const url =
       process.env.NODE_ENV === "production"
-        ? "https://tanstack-start-six.vercel.app"
+        ? "https://my-elysia-tanstack-app.zekariyasberihun8.workers.dev"
         : "http://localhost:3000";
 
     return treaty<typeof app>(url).api;
