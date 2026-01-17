@@ -76,7 +76,7 @@ function JokePage() {
   const revalidateJokes = () => {
     // This refreshes both the search results and the static joke
     queryClient
-      .invalidateQueries({ queryKey: ["joke", "search"] })
+      .invalidateQueries({ queryKey: ["joke"] })
       .then(() => console.log("Jokes revalidated"));
     router.invalidate();
 
