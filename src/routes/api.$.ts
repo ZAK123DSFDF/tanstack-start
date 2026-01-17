@@ -51,22 +51,14 @@ async function handle(ctx: {
   [key: string]: any;
 }): Promise<Response> {
   const { request } = ctx;
-  console.log("--- Production Context Scan ---");
-  console.log("Top-level keys:", Object.keys(ctx));
-  const env =
-    ctx.env ||
-    ctx.context?.cloudflare?.env ||
-    (request as any).env ||
-    (globalThis as any).process?.env ||
-    (globalThis as any).MY_KV
-      ? globalThis
-      : {};
-  console.log("Discovery Results:", {
-    hasEnv: !!env,
-    hasMyKV: !!(env && (env as any).MY_KV),
-    envKeys: env ? Object.keys(env) : [],
-    isGlobalKV: !!(globalThis as any).MY_KV,
-  });
+  const env = ctx.context?.cloudflare?.env || ctx.env || {};
+  if (!env.MY_KV) {
+    console.error(
+      "Binding still missing. Keys available in ctx.context:",
+      ctx.context ? Object.keys(ctx.context) : "null",
+    );
+  }
+
   return (app.fetch as any)(request, env);
 }
 export const Route = createFileRoute("/api/$")({

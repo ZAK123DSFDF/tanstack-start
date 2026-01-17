@@ -15,8 +15,7 @@
 	"kv_namespaces": [
 		{
 			"binding": "MY_KV",
-			"id": "97f7c2f092034d4f88363af9b63623a5",
-			"remote": true
+			"id": "97f7c2f092034d4f88363af9b63623a5"
 		}
 	]
 }
