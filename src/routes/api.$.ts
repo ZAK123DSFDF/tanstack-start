@@ -46,20 +46,27 @@ const app = new Elysia({
       .post("/error-demo", () => jokeControl.error()),
   );
 
-async function handle(ctx: any): Promise<Response> {
+async function handle(ctx: {
+  request: Request;
+  [key: string]: any;
+}): Promise<Response> {
   const { request } = ctx;
-  console.log("TanStack Context Keys:", Object.keys(ctx));
-  if (ctx.context) {
-    console.log("ctx.context Keys:", Object.keys(ctx.context));
-    if (ctx.context.cloudflare) {
-      console.log("Cloudflare Keys:", Object.keys(ctx.context.cloudflare));
-    }
-  }
+  console.log("--- Production Context Scan ---");
+  console.log("Top-level keys:", Object.keys(ctx));
   const env =
     ctx.env ||
     ctx.context?.cloudflare?.env ||
-    ctx.nativeEvent?.context?.cloudflare?.env ||
-    {};
+    (request as any).env ||
+    (globalThis as any).process?.env ||
+    (globalThis as any).MY_KV
+      ? globalThis
+      : {};
+  console.log("Discovery Results:", {
+    hasEnv: !!env,
+    hasMyKV: !!(env && (env as any).MY_KV),
+    envKeys: env ? Object.keys(env) : [],
+    isGlobalKV: !!(globalThis as any).MY_KV,
+  });
   return (app.fetch as any)(request, env);
 }
 export const Route = createFileRoute("/api/$")({
