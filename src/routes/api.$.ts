@@ -6,7 +6,7 @@ import { treaty } from "@elysiajs/eden";
 import { JokeController } from "@/elysia/joke/joke.controller";
 import { errorPlugin } from "@/lib/elysia/error-plugin";
 import { DEFAULT_JOKE_CATEGORY, JOKE_CATEGORIES } from "@/lib/constants/jokes";
-import { env as cfEnv } from "cloudflare:workers";
+// import { env as cfEnv } from "cloudflare:workers";
 const jokeControl = new JokeController();
 
 /* ---------- Elysia Instance ---------- */
@@ -16,15 +16,15 @@ const app = new Elysia({
   adapter: CloudflareAdapter,
 })
   .use(errorPlugin)
-  .get("/kv-test", async () => {
-    // `env` now has the KV namespace you configured
-    const kv = (cfEnv as any).MY_KV;
-    if (!kv) return { success: false, error: "Binding not found" };
-    const key = "debug_check";
-    await kv.put(key, `Checked at ${new Date().toISOString()}`);
-    const value = await kv.get(key);
-    return { success: true, data: value };
-  })
+  // .get("/kv-test", async () => {
+  //   // `env` now has the KV namespace you configured
+  //   const kv = (cfEnv as any).MY_KV;
+  //   if (!kv) return { success: false, error: "Binding not found" };
+  //   const key = "debug_check";
+  //   await kv.put(key, `Checked at ${new Date().toISOString()}`);
+  //   const value = await kv.get(key);
+  //   return { success: true, data: value };
+  // })
   .get("/status", () => ({
     ok: true,
     data: { status: "Operational", version: "2.0.26" },
@@ -47,7 +47,7 @@ const app = new Elysia({
 
 /* ---------- Handler ---------- */
 async function handle(ctx: { request: Request }): Promise<Response> {
-  return (app.fetch as any)(ctx.request, cfEnv);
+  return (app.fetch as any)(ctx.request);
 }
 export const Route = createFileRoute("/api/$")({
   server: {
