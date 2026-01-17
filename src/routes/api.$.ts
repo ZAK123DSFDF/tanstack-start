@@ -15,27 +15,6 @@ const app = new Elysia({
   adapter: CloudflareAdapter,
 })
   .use(errorPlugin)
-  .get("/kv-test", async () => {
-    try {
-      // ✅ DYNAMIC IMPORT HERE: This only runs on the server when requested
-      const { env } = await import("cloudflare:workers");
-      const kv = (env as any).MY_KV;
-
-      if (!kv) return { success: false, error: "Binding MY_KV not found" };
-
-      const key = "debug_check";
-      await kv.put(key, `Checked at ${new Date().toISOString()}`);
-      const value = await kv.get(key);
-
-      return { success: true, data: value };
-    } catch (err: any) {
-      return {
-        success: false,
-        error: "Failed to load cloudflare:workers",
-        details: err.message,
-      };
-    }
-  })
   .get("/status", () => ({
     ok: true,
     data: { status: "Operational", version: "2.0.26" },

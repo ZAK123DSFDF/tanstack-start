@@ -4,10 +4,11 @@ import { JokeService } from "./joke.service";
 export class JokeController {
   private service = new JokeService();
 
-  random = ({ query }: any) =>
-    this.service.getRandomJoke(query.query, query.category);
-  random2 = () => this.service.getSlowJoke();
-  success = () => this.service.successDemo();
-  reset = () => this.service.resetDemo();
-  error = () => this.service.errorDemo();
+  random = async ({ query }: any) =>
+    await this.service.getRandomJoke(query.query, query.category);
+
+  random2 = async () => await this.service.getSlowJoke();
+  success = async () => await this.service.successDemo();
+  reset = async () => await this.service.resetDemo();
+  error = async () => await this.service.errorDemo();
 }

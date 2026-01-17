@@ -3,16 +3,27 @@ import { throwHttpError } from "@/lib/elysia/throwHttpError";
 import { handleAction } from "@/lib/elysia/hndleAction";
 
 export class JokeService {
-  // Simple in-memory state (Note: will reset when worker sleeps)
-  private serverVersion = 1;
+  private KV_KEY = "server_version";
+
+  // Helper to get the KV binding
+  private async getKV() {
+    try {
+      const { env } = await import("cloudflare:workers");
+      return (env as any).MY_KV;
+    } catch {
+      return null;
+    }
+  }
 
   async resetDemo() {
     return handleAction("ResetDemo", async () => {
-      this.serverVersion = 1;
+      const kv = await this.getKV();
+      if (kv) await kv.put(this.KV_KEY, "1");
+
       return {
         ok: true,
         status: 200,
-        toast: "Server state has been reset to Version 1",
+        toast: "KV state has been reset to Version 1",
         data: { version: 1 },
       };
     });
@@ -20,22 +31,34 @@ export class JokeService {
 
   async successDemo() {
     return handleAction("SuccessDemo", async () => {
-      this.serverVersion += 1;
+      const kv = await this.getKV();
+      let currentVersion = 1;
+
+      if (kv) {
+        const stored = await kv.get(this.KV_KEY);
+        currentVersion = stored ? parseInt(stored) + 1 : 2;
+        await kv.put(this.KV_KEY, currentVersion.toString());
+      }
+
       return {
         ok: true,
         status: 200,
-        toast: `Server updated to version ${this.serverVersion}!`,
-        data: { version: this.serverVersion },
+        toast: `KV updated to version ${currentVersion}!`,
+        data: { version: currentVersion },
       };
     });
   }
 
   async getRandomJoke(query?: string, category?: string) {
     return handleAction("GetRandomJoke", async () => {
-      await new Promise((r) => setTimeout(r, 1500));
+      const kv = await this.getKV();
+      const version = (await kv?.get(this.KV_KEY)) || "1";
+
+      await new Promise((r) => setTimeout(r, 1000));
+
       const jokeText = query
-        ? `[v${this.serverVersion}] Search result: "${query}"`
-        : `[v${this.serverVersion}] Why don't scientists trust atoms?`;
+        ? `[KV v${version}] Search result: "${query}"`
+        : `[KV v${version}] Why did the developer stay at the office? Because they couldn't find the 'exit' node.`;
 
       return {
         ok: true,
@@ -47,11 +70,16 @@ export class JokeService {
 
   async getSlowJoke() {
     return handleAction("GetSlowJoke", async () => {
-      await new Promise((r) => setTimeout(r, 4000));
+      const kv = await this.getKV();
+      const version = (await kv?.get(this.KV_KEY)) || "1";
+
+      await new Promise((r) => setTimeout(r, 2000));
       return {
         ok: true,
         status: 200,
-        data: { message: `[v${this.serverVersion}] Static slow joke content.` },
+        data: {
+          message: `[KV v${version}] Static slow joke from edge storage.`,
+        },
       };
     });
   }
