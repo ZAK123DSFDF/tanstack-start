@@ -104,5 +104,5 @@ export const Route = createFileRoute("/api/$")({
 export const api = createIsomorphicFn()
   .server(() => treaty(app).api)
   .client(() => {
-    return treaty<typeof app>("").api;
+    return treaty<typeof app>("localhost:3000").api;
   });
