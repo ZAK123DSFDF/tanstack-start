@@ -9,7 +9,6 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as JokeRouteImport } from './routes/joke'
 import { Route as JokeMoveRouteRouteImport } from './routes/_jokeMove/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiSplatRouteImport } from './routes/api.$'
@@ -17,11 +16,6 @@ import { Route as JokeMoveLoginRouteImport } from './routes/_jokeMove/login'
 import { Route as JokeMoveJokeOriginRouteImport } from './routes/_jokeMove/jokeOrigin'
 import { Route as JokeMoveJokeMoveRouteImport } from './routes/_jokeMove/jokeMove'
 
-const JokeRoute = JokeRouteImport.update({
-  id: '/joke',
-  path: '/joke',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const JokeMoveRouteRoute = JokeMoveRouteRouteImport.update({
   id: '/_jokeMove',
   getParentRoute: () => rootRouteImport,
@@ -54,7 +48,6 @@ const JokeMoveJokeMoveRoute = JokeMoveJokeMoveRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/joke': typeof JokeRoute
   '/jokeMove': typeof JokeMoveJokeMoveRoute
   '/jokeOrigin': typeof JokeMoveJokeOriginRoute
   '/login': typeof JokeMoveLoginRoute
@@ -62,7 +55,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/joke': typeof JokeRoute
   '/jokeMove': typeof JokeMoveJokeMoveRoute
   '/jokeOrigin': typeof JokeMoveJokeOriginRoute
   '/login': typeof JokeMoveLoginRoute
@@ -72,7 +64,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_jokeMove': typeof JokeMoveRouteRouteWithChildren
-  '/joke': typeof JokeRoute
   '/_jokeMove/jokeMove': typeof JokeMoveJokeMoveRoute
   '/_jokeMove/jokeOrigin': typeof JokeMoveJokeOriginRoute
   '/_jokeMove/login': typeof JokeMoveLoginRoute
@@ -80,14 +71,13 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/joke' | '/jokeMove' | '/jokeOrigin' | '/login' | '/api/$'
+  fullPaths: '/' | '/jokeMove' | '/jokeOrigin' | '/login' | '/api/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/joke' | '/jokeMove' | '/jokeOrigin' | '/login' | '/api/$'
+  to: '/' | '/jokeMove' | '/jokeOrigin' | '/login' | '/api/$'
   id:
     | '__root__'
     | '/'
     | '/_jokeMove'
-    | '/joke'
     | '/_jokeMove/jokeMove'
     | '/_jokeMove/jokeOrigin'
     | '/_jokeMove/login'
@@ -97,19 +87,11 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   JokeMoveRouteRoute: typeof JokeMoveRouteRouteWithChildren
-  JokeRoute: typeof JokeRoute
   ApiSplatRoute: typeof ApiSplatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/joke': {
-      id: '/joke'
-      path: '/joke'
-      fullPath: '/joke'
-      preLoaderRoute: typeof JokeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_jokeMove': {
       id: '/_jokeMove'
       path: ''
@@ -174,7 +156,6 @@ const JokeMoveRouteRouteWithChildren = JokeMoveRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   JokeMoveRouteRoute: JokeMoveRouteRouteWithChildren,
-  JokeRoute: JokeRoute,
   ApiSplatRoute: ApiSplatRoute,
 }
 export const routeTree = rootRouteImport

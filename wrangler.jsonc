@@ -1,11 +1,14 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "my-elysia-tanstack-app",
-	"compatibility_date": "2026-01-17",
+    "compatibility_date": "2025-09-02",
 	"compatibility_flags": [
 		"nodejs_compat"
 	],
-	"main": "@tanstack/react-start/server-entry",
+  "main": "@tanstack/react-start/server-entry",
+  "observability": {
+    "enabled": true
+  },
 	"assets": {
 		"directory": ".output/public"
 	},
@@ -15,8 +18,5 @@
 			"id": "97f7c2f092034d4f88363af9b63623a5",
 			"remote": true
 		}
-	],
-	"observability": {
-		"enabled": true
-	}
+	]
 }

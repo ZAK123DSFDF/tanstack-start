@@ -1,16 +1,19 @@
 import { throwHttpError } from "@/lib/elysia/throwHttpError";
 import { handleAction } from "@/lib/elysia/hndleAction";
+import { CloudflareEnv } from "@/lib/types.ts";
 
 export class JokeService {
-  private serverVersion = 1;
-  async resetDemo() {
+  private async getVersion(env: CloudflareEnv): Promise<number> {
+    const v = await env.MY_KV.get("server_version");
+    return v ? parseInt(v) : 1;
+  }
+  async resetDemo(env: CloudflareEnv) {
     return handleAction("ResetDemo", async () => {
-      this.serverVersion = 1; // 🟢 Reset the "Database"
-
+      await env.MY_KV.put("server_version", "1");
       return {
         ok: true,
         status: 200,
-        toast: "Server state has been reset to Version 1",
+        toast: "Reset to Version 1",
         data: { version: 1 },
       };
     });
@@ -26,22 +29,19 @@ export class JokeService {
       };
     });
   }
-  async successDemo() {
+  async successDemo(env: CloudflareEnv) {
     return handleAction("SuccessDemo", async () => {
-      // 🚀 Simulate an update to the database
-      this.serverVersion += 1;
-
+      const current = await this.getVersion(env);
+      const next = current + 1;
+      await env.MY_KV.put("server_version", next.toString());
       return {
         ok: true,
         status: 200,
-        toast: `Server updated to version ${this.serverVersion}!`,
-        data: {
-          version: this.serverVersion,
-        },
+        toast: `Updated to v${next}`,
+        data: { version: next },
       };
     });
   }
-
   async errorDemo() {
     return handleAction("ErrorDemo", async () => {
       throw throwHttpError({
@@ -53,36 +53,34 @@ export class JokeService {
     });
   }
 
-  async getRandomJoke(query?: string, category?: string) {
+  async getRandomJoke(env: CloudflareEnv, query?: string, category?: string) {
     return handleAction("GetRandomJoke", async () => {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // 🟢 Use the serverVersion instead of a random number
+      const [v] = await Promise.all([
+        this.getVersion(env),
+        new Promise((r) => setTimeout(r, 1500)),
+      ]);
       const jokeText = query
-        ? `[Server v${this.serverVersion}] Search result for "${query}"`
-        : `[Server v${this.serverVersion}] Why don't scientists trust atoms?`;
-
+        ? `[v${v}] Search: ${query}`
+        : `[v${v}] Why don't atoms trust scientists?`;
       return {
         ok: true,
         status: 200,
-        data: {
-          message: jokeText,
-          category: category || "general",
-        },
+        data: { message: jokeText, category: category || "general" },
       };
     });
   }
-
-  async getSlowJoke() {
+  async getSlowJoke(env: CloudflareEnv) {
     return handleAction("GetSlowJoke", async () => {
-      await new Promise((resolve) => setTimeout(resolve, 4000));
+      const [v] = await Promise.all([
+        this.getVersion(env),
+        new Promise((resolve) => setTimeout(resolve, 4000)),
+      ]);
 
       return {
         ok: true,
         status: 200,
         data: {
-          // 🟢 Reflect the same global version
-          message: `[Server v${this.serverVersion}] Static slow joke content.`,
+          message: `[Server v${v}] This joke took 4 seconds to travel from the edge.`,
         },
       };
     });

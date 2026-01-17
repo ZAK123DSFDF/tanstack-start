@@ -1,15 +1,13 @@
+// src/elysia/joke/joke.controller.ts
 import { JokeService } from "./joke.service";
 
 export class JokeController {
   private service = new JokeService();
 
-  random = ({ query }: { query: { query?: string; category?: string } }) => {
-    return this.service.getRandomJoke(query.query, query.category);
-  };
-  random2 = () => this.service.getSlowJoke();
-  redirect = () => this.service.redirectToDemo();
-
-  success = () => this.service.successDemo();
+  random = ({ query, env }: any) =>
+    this.service.getRandomJoke(env, query.query, query.category);
+  success = ({ env }: any) => this.service.successDemo(env);
+  reset = ({ env }: any) => this.service.resetDemo(env);
   error = () => this.service.errorDemo();
-  reset = () => this.service.resetDemo();
+  random2 = ({ env }: any) => this.service.getSlowJoke(env);
 }
