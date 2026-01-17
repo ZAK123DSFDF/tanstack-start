@@ -6,7 +6,6 @@ import { treaty } from "@elysiajs/eden";
 import { JokeController } from "@/elysia/joke/joke.controller";
 import { errorPlugin } from "@/lib/elysia/error-plugin";
 import { DEFAULT_JOKE_CATEGORY, JOKE_CATEGORIES } from "@/lib/constants/jokes";
-import { env as cfEnv } from "cloudflare:workers";
 
 const jokeControl = new JokeController();
 
@@ -17,28 +16,32 @@ const app = new Elysia({
   adapter: CloudflareAdapter,
 })
   .use(errorPlugin)
-  .get("/kv-test", async () => {
-    const kv = (cfEnv as any).MY_KV;
+  .get("/kv-test", async ({ env }: any) => {
+    // 2. Access KV through the injected Elysia context
+    const kv = env?.MY_KV;
 
     if (!kv) {
       return {
         success: false,
-        error: "MY_KV not found in cloudflare:workers import",
-        availableEnvKeys: Object.keys(cfEnv),
+        error: "MY_KV not found in Elysia context",
+        envKeys: env ? Object.keys(env) : "env is undefined",
       };
     }
 
-    const testKey = "debug_check";
-    const testValue = `Checked at ${new Date().toISOString()}`;
+    try {
+      const testKey = "debug_check";
+      const testValue = `Checked at ${new Date().toISOString()}`;
+      await kv.put(testKey, testValue);
+      const result = await kv.get(testKey);
 
-    await kv.put(testKey, testValue);
-    const result = await kv.get(testKey);
-
-    return {
-      success: true,
-      message: "KV Direct Import Success!",
-      data: result,
-    };
+      return {
+        success: true,
+        message: "KV Direct Import Success!",
+        data: result,
+      };
+    } catch (err: any) {
+      return { success: false, error: err.message };
+    }
   })
   .get("/status", () => ({
     ok: true,
@@ -61,8 +64,25 @@ const app = new Elysia({
   );
 
 /* ---------- Handler ---------- */
-async function handle(ctx: { request: Request }): Promise<Response> {
-  return (app.fetch as any)(ctx.request, cfEnv);
+async function handle(ctx: {
+  request: Request;
+  [key: string]: any;
+}): Promise<Response> {
+  const { request } = ctx;
+
+  // 2. Dynamically get the environment
+  let runtimeEnv: any;
+  try {
+    // This will work on Cloudflare but be ignored by Vite during build
+    const cf = await import("cloudflare:workers");
+    runtimeEnv = cf.env;
+  } catch {
+    // Fallback for local dev if needed
+    runtimeEnv = ctx.env || {};
+  }
+
+  // 3. Pass it to Elysia
+  return (app.fetch as any)(request, runtimeEnv);
 }
 
 export const Route = createFileRoute("/api/$")({
