@@ -6,7 +6,6 @@ import { treaty } from "@elysiajs/eden";
 import { JokeController } from "@/elysia/joke/joke.controller";
 import { errorPlugin } from "@/lib/elysia/error-plugin";
 import { DEFAULT_JOKE_CATEGORY, JOKE_CATEGORIES } from "@/lib/constants/jokes";
-import { CloudflareEnv } from "@/lib/types.ts";
 
 const jokeControl = new JokeController();
 
@@ -40,13 +39,28 @@ const app = new Elysia({
       .post("/reset-demo", (ctx) => jokeControl.reset(ctx)),
   );
 
-/* ---------- Handler for TanStack Start ---------- */
 async function handle(ctx: any): Promise<Response> {
-  const { request, env } = ctx as { request: Request; env: CloudflareEnv };
-  // Critical: Pass env as the second argument so ctx.env works in Elysia
+  const { request } = ctx;
+
+  // 1. TanStack/Vinxi often nest the Cloudflare env here
+  // We check multiple fallback locations to find the real MY_KV
+  const env =
+    ctx.env ||
+    ctx.context?.cloudflare?.env ||
+    (globalThis as any).process?.env || // Fallback for some adapter types
+    {};
+
+  // 2. DEBUG LOG (Check your Cloudflare logs to see what's actually there)
+  if (!env?.MY_KV) {
+    console.error("❌ PRODUCTION ERROR: MY_KV is missing from all contexts!", {
+      ctxKeys: Object.keys(ctx),
+      hasCloudflare: !!ctx.context?.cloudflare,
+    });
+  }
+
+  // 3. Force-pass the discovered env to Elysia
   return (app.fetch as any)(request, env);
 }
-
 export const Route = createFileRoute("/api/$")({
   server: {
     handlers: {
