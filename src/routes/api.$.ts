@@ -6,7 +6,6 @@ import { treaty } from "@elysiajs/eden";
 import { JokeController } from "@/elysia/joke/joke.controller";
 import { errorPlugin } from "@/lib/elysia/error-plugin";
 import { DEFAULT_JOKE_CATEGORY, JOKE_CATEGORIES } from "@/lib/constants/jokes";
-import { CloudflareEnv } from "@/lib/types.ts";
 
 const jokeControl = new JokeController();
 
@@ -16,33 +15,16 @@ const app = new Elysia({
   adapter: CloudflareAdapter,
 })
   .use(errorPlugin)
-  .get("/kv-test", async ({ request, ...rest }) => {
-    const env = (rest as any).env as CloudflareEnv;
-
-    if (!env || !env.MY_KV) {
-      return {
-        success: false,
-        error: "KV Binding 'MY_KV' not found",
-        availableKeys: Object.keys(rest),
-      };
-    }
-
-    try {
-      const testValue = `Checked at ${new Date().toISOString()}`;
-      await env.MY_KV.put("last_check", testValue);
-      const retrieved = await env.MY_KV.get("last_check");
-
-      return {
-        success: true,
-        message: "KV is working!",
-        data: retrieved,
-      };
-    } catch (err: any) {
-      return {
-        success: false,
-        error: err.message,
-      };
-    }
+  .get("/kv-test", async (ctx) => {
+    const env = (ctx as any).env;
+    return {
+      success: false,
+      message: "Diagnostic Mode",
+      hasEnvObject: !!env,
+      hasMyKV: !!env?.MY_KV,
+      allContextKeys: Object.keys(ctx),
+      requestHasEnv: !!(ctx.request as any).env,
+    };
   })
   .get("/status", () => ({
     ok: true,
@@ -66,11 +48,20 @@ const app = new Elysia({
 
 async function handle(ctx: any): Promise<Response> {
   const { request } = ctx;
-  const env = ctx.env || ctx.context?.cloudflare?.env || {};
-
+  console.log("TanStack Context Keys:", Object.keys(ctx));
+  if (ctx.context) {
+    console.log("ctx.context Keys:", Object.keys(ctx.context));
+    if (ctx.context.cloudflare) {
+      console.log("Cloudflare Keys:", Object.keys(ctx.context.cloudflare));
+    }
+  }
+  const env =
+    ctx.env ||
+    ctx.context?.cloudflare?.env ||
+    ctx.nativeEvent?.context?.cloudflare?.env ||
+    {};
   return (app.fetch as any)(request, env);
 }
-
 export const Route = createFileRoute("/api/$")({
   server: {
     handlers: {
