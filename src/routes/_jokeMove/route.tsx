@@ -37,10 +37,10 @@ export const Route = createFileRoute("/_jokeMove")({
       });
     }
     try {
-      const statusData = await queryClient.ensureQueryData({
+      const statusData = await queryClient.fetchQuery({
         queryKey: ["system-status"],
         queryFn: () => cleanTreaty(api().status.get()),
-        staleTime: 20_000, // ✅ 10 seconds
+        staleTime: 0,
       });
 
       if (!statusData.ok) {

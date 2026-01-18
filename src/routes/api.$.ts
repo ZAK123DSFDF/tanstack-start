@@ -15,10 +15,13 @@ const app = new Elysia({
   adapter: CloudflareAdapter,
 })
   .use(errorPlugin)
-  .get("/status", () => ({
-    ok: true,
-    data: { status: "Operational", version: "2.0.26" },
-  }))
+  .get("/status", async () => {
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    return {
+      ok: true,
+      data: { status: "Operational", version: "2.0.26" },
+    };
+  })
   .group("/joke", (group) =>
     group
       .get("/random", (ctx) => jokeControl.random(ctx), {
