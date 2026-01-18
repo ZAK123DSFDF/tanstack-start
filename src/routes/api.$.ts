@@ -33,6 +33,16 @@ const app = new Elysia({
       .post("/success-demo", () => jokeControl.success())
       .post("/reset-demo", () => jokeControl.reset())
       .post("/error-demo", () => jokeControl.error()),
+  )
+  .group("/redis", (group) =>
+    group
+      .get("/", () => jokeControl.getRedis())
+      .post("/", ({ body }) => jokeControl.setRedis({ body }), {
+        body: t.Object({
+          value: t.String({ minLength: 1 }),
+        }),
+      })
+      .delete("/", () => jokeControl.deleteRedis()),
   );
 
 /* ---------- Handler ---------- */

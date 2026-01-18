@@ -63,12 +63,23 @@ export async function getDB() {
   const env = await getEnv();
   return env?.DB ?? null;
 }
-export async function getRedis() {
+let redisClient: Redis | null = null;
+export const getRedis = async () => {
+  if (redisClient) return redisClient;
   const env = await getEnv();
-  if (!env) return null;
+  const url = env?.UPSTASH_REDIS_REST_URL || process.env.UPSTASH_REDIS_REST_URL;
+  const token =
+    env?.UPSTASH_REDIS_REST_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
 
-  if (process.env.NODE_ENV === "development") {
-    return Redis.fromEnv();
+  if (!url || !token) {
+    console.error("❌ Redis credentials missing! Check your .env file.");
+    return null;
   }
-  return Redis.fromEnv(env);
-}
+
+  redisClient = new Redis({
+    url: url,
+    token: token,
+  });
+
+  return redisClient;
+};

@@ -11,4 +11,8 @@ export class JokeController {
   success = async () => await this.service.successDemo();
   reset = async () => await this.service.resetDemo();
   error = async () => await this.service.errorDemo();
+  getRedis = async () => await this.service.getRedisValue();
+  setRedis = async ({ body }: { body: { value: string } }) =>
+    await this.service.setRedisValue(body.value);
+  deleteRedis = async () => await this.service.deleteRedisValue();
 }

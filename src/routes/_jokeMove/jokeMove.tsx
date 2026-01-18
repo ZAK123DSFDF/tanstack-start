@@ -44,9 +44,15 @@ export const Route = createFileRoute("/_jokeMove/jokeMove")({
       gcTime: 50000,
     });
     const staticPromise = queryClient.fetchQuery(staticJokeOptions);
+    const redisPromise = queryClient.fetchQuery({
+      queryKey: ["redis", "playground"],
+      queryFn: () => cleanTreaty(api().redis.get()),
+      staleTime: 0, // We want fresh data for the playground
+    });
     return {
       joke1Promise: defer(searchPromise),
       joke2Promise: defer(staticPromise),
+      redisPromise: defer(redisPromise),
     };
   },
   component: JokePage,
@@ -62,7 +68,7 @@ function JokePage() {
   const queryClient = useQueryClient();
   // Local state for the input to allow smooth typing
   const [tempQuery, setTempQuery] = useState(search.query ?? "");
-
+  const [redisInput, setRedisInput] = useState("");
   // Debounce: Update URL 400ms after user stops typing
   useEffect(() => {
     const delay = setTimeout(() => {
@@ -95,6 +101,30 @@ function JokePage() {
   const resetMutation = useAppMutation(
     () => cleanTreaty(api().joke["reset-demo"].post()),
     { onSettled: revalidateJokes },
+  );
+  const setRedisMutation = useAppMutation(
+    (val: string) => cleanTreaty(api().redis.post({ value: val })),
+    {
+      onSuccess: () => {
+        setRedisInput("");
+        queryClient
+          .invalidateQueries({ queryKey: ["redis", "playground"] })
+          .then(() => console.log("Redis query invalidated"));
+        router.invalidate();
+      },
+    },
+  );
+
+  const deleteRedisMutation = useAppMutation(
+    () => cleanTreaty(api().redis.delete()),
+    {
+      onSuccess: () => {
+        queryClient
+          .invalidateQueries({ queryKey: ["redis", "playground"] })
+          .then(() => console.log("Redis query invalidated"));
+        router.invalidate();
+      },
+    },
   );
   return (
     <div style={{ padding: "20px", maxWidth: "600px" }}>
@@ -170,6 +200,50 @@ function JokePage() {
             </option>
           ))}
         </select>
+      </div>
+      <div
+        style={{
+          marginTop: "30px",
+          padding: "15px",
+          border: "1px solid #ddd",
+          borderRadius: "8px",
+          backgroundColor: "#f9f9f9",
+        }}
+      >
+        <div style={{ display: "flex", gap: "10px" }}>
+          <input
+            value={redisInput}
+            onChange={(e) => setRedisInput(e.target.value)}
+            placeholder="Type a value..."
+            style={{ flex: 1, padding: "8px" }}
+          />
+          <button
+            onClick={() => setRedisMutation.mutate(redisInput)}
+            disabled={setRedisMutation.isPending || !redisInput}
+            style={{
+              backgroundColor: "#2196F3",
+              color: "white",
+              border: "none",
+              padding: "8px 15px",
+              borderRadius: "4px",
+            }}
+          >
+            Save to Redis
+          </button>
+          <button
+            onClick={() => deleteRedisMutation.mutate(undefined)}
+            disabled={deleteRedisMutation.isPending}
+            style={{
+              backgroundColor: "#333",
+              color: "white",
+              border: "none",
+              padding: "8px 15px",
+              borderRadius: "4px",
+            }}
+          >
+            Delete Key
+          </button>
+        </div>
       </div>
       <hr />
       <JokeData />

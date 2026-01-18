@@ -1,11 +1,11 @@
 // src/elysia/joke/joke.service.ts
 import { throwHttpError } from "@/lib/elysia/throwHttpError";
 import { handleAction } from "@/lib/elysia/hndleAction";
-import { getKV } from "@/lib/cloudflare.ts";
+import { getKV, getRedis } from "@/lib/cloudflare.ts";
 
 export class JokeService {
   private KV_KEY = "server_version";
-
+  private REDIS_KEY = "playground_key";
   async resetDemo() {
     return handleAction("ResetDemo", async () => {
       const kv = await getKV();
@@ -83,6 +83,46 @@ export class JokeService {
         toast: "Intentional error!",
         message: "Something went wrong.",
       });
+    });
+  }
+  async getRedisValue() {
+    return handleAction("GetRedisValue", async () => {
+      const redis = await getRedis();
+      const value = await redis?.get<string>(this.REDIS_KEY);
+
+      return {
+        ok: true,
+        status: 200,
+        data: { value: value || "No value set in Redis" },
+      };
+    });
+  }
+
+  async setRedisValue(newValue: string) {
+    return handleAction("SetRedisValue", async () => {
+      const redis = await getRedis();
+      await redis?.set(this.REDIS_KEY, newValue);
+
+      return {
+        ok: true,
+        status: 200,
+        toast: "Redis updated!",
+        data: { value: newValue },
+      };
+    });
+  }
+
+  async deleteRedisValue() {
+    return handleAction("DeleteRedisValue", async () => {
+      const redis = await getRedis();
+      await redis?.del(this.REDIS_KEY);
+
+      return {
+        ok: true,
+        status: 200,
+        toast: "Key deleted from Redis",
+        data: { value: null },
+      };
     });
   }
 }

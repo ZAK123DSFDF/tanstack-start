@@ -42,7 +42,35 @@ function SearchJoke() {
     </div>
   );
 }
+function RedisData() {
+  const { redisPromise } = Route.useLoaderData();
 
+  return (
+    <div
+      style={{ marginTop: "20px", padding: "10px", border: "1px dashed #ccc" }}
+    >
+      <h4>Redis Live Value:</h4>
+      <Suspense fallback={<p>Checking Upstash...</p>}>
+        <Await promise={redisPromise}>
+          {(res) => {
+            if (!res.ok) return <p style={{ color: "red" }}>Redis Error</p>;
+            return (
+              <p
+                style={{
+                  fontSize: "20px",
+                  fontWeight: "bold",
+                  color: "#2196F3",
+                }}
+              >
+                {res.data.value}
+              </p>
+            );
+          }}
+        </Await>
+      </Suspense>
+    </div>
+  );
+}
 function StaticJoke() {
   const { joke2Promise } = Route.useLoaderData();
   const { systemStatus } = Route.useRouteContext();
@@ -67,16 +95,10 @@ function StaticJoke() {
 export function JokeData() {
   return (
     <>
-      <Suspense
-        fallback={<p style={{ color: "blue" }}>Loading search result…</p>}
-      >
-        <SearchJoke />
-      </Suspense>
-      <Suspense
-        fallback={<p style={{ color: "green" }}>Loading static joke…</p>}
-      >
-        <StaticJoke />
-      </Suspense>
+      <SearchJoke />
+      <StaticJoke />
+      <hr />
+      <RedisData />
     </>
   );
 }
