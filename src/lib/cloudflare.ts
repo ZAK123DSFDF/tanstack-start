@@ -64,16 +64,17 @@ export async function getDB() {
   return env?.DB ?? null;
 }
 let redisClient: Redis | null = null;
+
 export const getRedis = async () => {
   if (redisClient) return redisClient;
   const env = await getEnv();
-  const url = env?.UPSTASH_REDIS_REST_URL || process.env.UPSTASH_REDIS_REST_URL;
-  const token =
-    env?.UPSTASH_REDIS_REST_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
 
+  const url = env?.UPSTASH_REDIS_REST_URL;
+  const token = env?.UPSTASH_REDIS_REST_TOKEN;
   if (!url || !token) {
-    console.error("❌ Redis credentials missing! Check your .env file.");
-    return null;
+    throw new Error(
+      "❌ Redis credentials missing! Ensure UPSTASH_REDIS_REST_URL and TOKEN are set in your .env or Wrangler config.",
+    );
   }
 
   redisClient = new Redis({
