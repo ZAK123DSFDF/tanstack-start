@@ -53,14 +53,12 @@ export const Route = createFileRoute("/_jokeMove/jokeMove")({
     const systemStatusPromise = queryClient.fetchQuery({
       queryKey: ["system-status"],
       queryFn: () => cleanTreaty(api().status.get()),
-      staleTime: 50000,
-      gcTime: 50000,
     });
     return {
       joke1Promise: defer(searchPromise),
       joke2Promise: defer(staticPromise),
       redisPromise: defer(redisPromise),
-      systemStatusPromise,
+      systemStatusPromise: defer(systemStatusPromise),
     };
   },
   component: JokePage,
@@ -116,7 +114,9 @@ function JokePage() {
       onSuccess: () => {
         setRedisInput("");
         queryClient
-          .invalidateQueries({ queryKey: ["redis", "playground"] })
+          .invalidateQueries({
+            queryKey: ["redis", "playground"],
+          })
           .then(() => console.log("Redis query invalidated"));
         router.invalidate();
       },
