@@ -1,8 +1,9 @@
 // src/components/JokeData.tsx
 
-import { Await, useSearch } from "@tanstack/react-router";
+import { Await, useNavigate, useSearch } from "@tanstack/react-router";
 import { Route } from "@/routes/_jokeMove/jokeMove.tsx";
-import { Suspense } from "react";
+import { Route as RouteLayout } from "@/routes/_jokeMove/route.tsx";
+import { Suspense, useEffect } from "react";
 
 function SearchJoke() {
   // 1. Get current params from the URL
@@ -71,13 +72,42 @@ function RedisData() {
     </div>
   );
 }
+function StatusGuard() {
+  const { systemStatusPromise } = RouteLayout.useLoaderData();
+  const navigate = useNavigate();
+
+  return (
+    <Suspense>
+      <Await promise={systemStatusPromise}>
+        {(status) => {
+          // Logic: If status is Operational, kick them back to home
+          useEffect(() => {
+            if (status.data?.status === "executional") {
+              console.log("System operational - Redirecting...");
+              navigate({ to: "/" }).then(() => console.log("Redirected"));
+            }
+          }, [status, navigate]);
+          if (status.data?.status !== "executional") {
+            return (
+              <div className="px-5 py-2">
+                <span className="text-xs font-mono text-green-600 bg-green-50 px-2 py-1 rounded border border-green-200">
+                  v{status.data?.version ?? "0.0.0"}
+                </span>
+              </div>
+            );
+          }
+          return null;
+        }}
+      </Await>
+    </Suspense>
+  );
+}
 function StaticJoke() {
   const { joke2Promise } = Route.useLoaderData();
-  const { systemStatus } = Route.useRouteContext();
 
   return (
     <>
-      <p style={{ color: "gray" }}>System Version: {systemStatus.version}</p>
+      <StatusGuard />
       <Suspense
         fallback={<p style={{ color: "green" }}>Loading static joke…</p>}
       >

@@ -25,33 +25,25 @@ const getAuthToken = createServerFn({ method: "GET" }).handler(async () => {
 });
 export const Route = createFileRoute("/_jokeMove")({
   shouldReload: false,
-
-  beforeLoad: async ({ context: { queryClient }, location }) => {
-    // 1. Get cookie from document (client) OR headers (server)
+  beforeLoad: async ({ location }) => {
     const token = await getAuthToken();
-
     if (!token) {
-      throw redirect({
-        to: "/",
-        search: { redirect: location.href },
-      });
+      throw redirect({ to: "/", search: { redirect: location.href } });
     }
-    try {
-      const statusData = await queryClient.fetchQuery({
-        queryKey: ["system-status"],
-        queryFn: () => cleanTreaty(api().status.get()),
-        staleTime: 0,
-      });
+    // We no longer fetch status here!
+  },
 
-      if (!statusData.ok) {
-        throw redirect({ to: "/" });
-      }
+  loader: async ({ context: { queryClient } }) => {
+    // We return a PROMISE. This makes it non-blocking for the initial layout render.
+    const systemStatusPromise = queryClient.fetchQuery({
+      queryKey: ["system-status"],
+      queryFn: () => cleanTreaty(api().status.get()),
+      staleTime: 10000,
+    });
 
-      return { systemStatus: statusData.data };
-    } catch (error) {
-      if ((error as any)?.status === 307) throw error;
-      throw new Error("System check failed");
-    }
+    return {
+      systemStatusPromise,
+    };
   },
 
   component: LayoutComponent,

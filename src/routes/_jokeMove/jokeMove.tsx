@@ -47,7 +47,6 @@ export const Route = createFileRoute("/_jokeMove/jokeMove")({
     const redisPromise = queryClient.fetchQuery({
       queryKey: ["redis", "playground"],
       queryFn: () => cleanTreaty(api().redis.get()),
-      staleTime: 0, // We want fresh data for the playground
     });
     return {
       joke1Promise: defer(searchPromise),

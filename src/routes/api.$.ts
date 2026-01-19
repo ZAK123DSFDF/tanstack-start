@@ -19,7 +19,7 @@ const app = new Elysia({
     await new Promise((resolve) => setTimeout(resolve, 2000));
     return {
       ok: true,
-      data: { status: "Operational", version: "2.0.26" },
+      data: { status: "Operational", version: "2.1.26" },
     };
   })
   .group("/joke", (group) =>
