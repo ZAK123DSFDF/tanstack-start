@@ -1,16 +1,10 @@
 // src/routes/_jokeMove/route.tsx
-import {
-  createFileRoute,
-  Link,
-  Outlet,
-  redirect,
-} from "@tanstack/react-router";
-import { cleanTreaty } from "@/lib/eden/treaty-helper.ts";
-import { api } from "@/routes/api.$.ts";
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getCookie } from "@tanstack/react-start/server";
+import { SidebarComponent } from "@/components/Sidebar.tsx";
 function getClientCookie(name: string): string | null {
   if (typeof document === "undefined") return null;
   return (
@@ -32,20 +26,6 @@ export const Route = createFileRoute("/_jokeMove")({
     }
     // We no longer fetch status here!
   },
-
-  loader: async ({ context: { queryClient } }) => {
-    // We return a PROMISE. This makes it non-blocking for the initial layout render.
-    const systemStatusPromise = queryClient.fetchQuery({
-      queryKey: ["system-status"],
-      queryFn: () => cleanTreaty(api().status.get()),
-      staleTime: 10000,
-    });
-
-    return {
-      systemStatusPromise,
-    };
-  },
-
   component: LayoutComponent,
 });
 
@@ -73,23 +53,7 @@ function LayoutComponent() {
 
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
-      <nav
-        style={{
-          width: "250px",
-          backgroundColor: "#f4f4f4",
-          padding: "20px",
-          display: "flex",
-          flexDirection: "column",
-          gap: "12px",
-          borderRight: "1px solid #ddd",
-        }}
-      >
-        <h3 style={{ marginBottom: "20px" }}>Joke Navigation</h3>
-
-        <Link to="/jokeMove">Go to Search Jokes</Link>
-        <Link to="/jokeOrigin">Go to Joke Origins</Link>
-      </nav>
-
+      <SidebarComponent />
       <main style={{ flex: 1, padding: "40px" }}>
         <Outlet />
       </main>

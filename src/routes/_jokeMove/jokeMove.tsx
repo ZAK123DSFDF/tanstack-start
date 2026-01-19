@@ -47,11 +47,20 @@ export const Route = createFileRoute("/_jokeMove/jokeMove")({
     const redisPromise = queryClient.fetchQuery({
       queryKey: ["redis", "playground"],
       queryFn: () => cleanTreaty(api().redis.get()),
+      staleTime: 50000,
+      gcTime: 50000,
+    });
+    const systemStatusPromise = queryClient.fetchQuery({
+      queryKey: ["system-status"],
+      queryFn: () => cleanTreaty(api().status.get()),
+      staleTime: 50000,
+      gcTime: 50000,
     });
     return {
       joke1Promise: defer(searchPromise),
       joke2Promise: defer(staticPromise),
       redisPromise: defer(redisPromise),
+      systemStatusPromise,
     };
   },
   component: JokePage,
