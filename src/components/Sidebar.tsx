@@ -1,16 +1,26 @@
 // src/components/Sidebar.tsx
-import { Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { api } from "@/routes/api.$.ts";
-import { cleanTreaty } from "@/lib/eden/treaty-helper.ts";
+import { Link, Await, useRouter } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { Route } from "@/routes/_jokeMove/jokeMove.tsx";
+import { Suspense } from "react";
 
 export function SidebarComponent() {
-  // This component lives in the Layout but "listens" to the child loader's data
-  const { data: statusRes } = useQuery({
-    queryKey: ["system-status-sidebar"],
-    queryFn: () => cleanTreaty(api().status.get()),
-    staleTime: 10000,
-  });
+  const queryClient = useQueryClient();
+  const router = useRouter();
+
+  // 🟢 Get the promise from the child route loader
+  // Note: This will only be available when the current route is /jokeMove
+  const loaderData = Route.useLoaderData();
+  const systemStatusPromise = loaderData?.systemStatusPromise;
+
+  const handleRefreshStatus = () => {
+    // Since we are using a promise from the loader, to get "new" data
+    // without useQuery, we must tell the router to re-run the loader.
+    queryClient
+      .invalidateQueries({ queryKey: ["system-status"] })
+      .then(() => console.log("System status query invalidated"));
+    router.invalidate();
+  };
 
   return (
     <nav
@@ -28,7 +38,6 @@ export function SidebarComponent() {
       <Link to="/jokeMove">Go to Search Jokes</Link>
       <Link to="/jokeOrigin">Go to Joke Origins</Link>
 
-      {/* 🟢 System Status Displayed Here */}
       <div
         style={{
           marginTop: "auto",
@@ -37,20 +46,48 @@ export function SidebarComponent() {
           borderRadius: "4px",
         }}
       >
-        <p style={{ fontSize: "12px", margin: 0 }}>System Status:</p>
-        <span
+        <div
           style={{
-            fontSize: "14px",
-            fontWeight: "bold",
-            color:
-              statusRes?.data?.status === "executional" ? "green" : "orange",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
           }}
         >
-          {statusRes?.data?.status ?? "Checking..."}
-        </span>
-        <p style={{ fontSize: "10px", color: "#666" }}>
-          v{statusRes?.data?.version}
-        </p>
+          <p style={{ fontSize: "12px", margin: 0 }}>System Status:</p>
+          <button
+            onClick={handleRefreshStatus}
+            style={{ fontSize: "10px", cursor: "pointer" }}
+          >
+            🔄
+          </button>
+        </div>
+
+        {/* 🟢 Using Await instead of useQuery */}
+        <Suspense
+          fallback={<span style={{ fontSize: "14px" }}>Checking...</span>}
+        >
+          <Await promise={systemStatusPromise}>
+            {(statusRes) => (
+              <>
+                <span
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: "bold",
+                    color:
+                      statusRes?.data?.status === "executional"
+                        ? "green"
+                        : "orange",
+                  }}
+                >
+                  {statusRes?.data?.status ?? "Unknown"}
+                </span>
+                <p style={{ fontSize: "10px", color: "#666" }}>
+                  v{statusRes?.data?.version}
+                </p>
+              </>
+            )}
+          </Await>
+        </Suspense>
       </div>
     </nav>
   );

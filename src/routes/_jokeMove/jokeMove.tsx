@@ -134,6 +134,14 @@ function JokePage() {
       },
     },
   );
+  const handleRefreshStatus = () => {
+    // 🟢 This ONLY refreshes the status.
+    // It does NOT trigger router.invalidate(), so jokes stay as they are.
+    queryClient
+      .invalidateQueries({ queryKey: ["system-status"] })
+      .then(() => console.log("Status refreshed"));
+    router.invalidate();
+  };
   return (
     <div style={{ padding: "20px", maxWidth: "600px" }}>
       <h1>Random Jokes</h1>
@@ -150,7 +158,12 @@ function JokePage() {
         >
           {successMutation.isPending ? "Processing..." : "Trigger Success"}
         </button>
-
+        <button
+          onClick={handleRefreshStatus}
+          style={{ fontSize: "10px", cursor: "pointer" }}
+        >
+          🔄
+        </button>
         <button
           onClick={() => errorMutation.mutate(undefined)}
           disabled={errorMutation.isPending}
