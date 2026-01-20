@@ -1,10 +1,17 @@
 // src/routes/_jokeMove/route.tsx
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  defer,
+  Outlet,
+  redirect,
+} from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getCookie } from "@tanstack/react-start/server";
 import { SidebarComponent } from "@/components/Sidebar.tsx";
+import { cleanTreaty } from "@/lib/eden/treaty-helper.ts";
+import { api } from "@/routes/api.$.ts";
 function getClientCookie(name: string): string | null {
   if (typeof document === "undefined") return null;
   return (
@@ -18,13 +25,22 @@ const getAuthToken = createServerFn({ method: "GET" }).handler(async () => {
   return getCookie("tanstackname");
 });
 export const Route = createFileRoute("/_jokeMove")({
-  shouldReload: false,
   beforeLoad: async ({ location }) => {
     const token = await getAuthToken();
     if (!token) {
       throw redirect({ to: "/", search: { redirect: location.href } });
     }
-    // We no longer fetch status here!
+  },
+  loader: ({ context: { queryClient } }) => {
+    const systemStatusPromise = queryClient.fetchQuery({
+      queryKey: ["system-status"],
+      queryFn: () => cleanTreaty(api().status.get()),
+      staleTime: 50000,
+      gcTime: 50000,
+    });
+    return {
+      systemStatusPromise: defer(systemStatusPromise),
+    };
   },
   component: LayoutComponent,
 });

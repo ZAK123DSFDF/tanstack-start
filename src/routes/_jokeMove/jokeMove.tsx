@@ -50,15 +50,11 @@ export const Route = createFileRoute("/_jokeMove/jokeMove")({
       staleTime: 50000,
       gcTime: 50000,
     });
-    const systemStatusPromise = queryClient.fetchQuery({
-      queryKey: ["system-status"],
-      queryFn: () => cleanTreaty(api().status.get()),
-    });
+
     return {
       joke1Promise: defer(searchPromise),
       joke2Promise: defer(staticPromise),
       redisPromise: defer(redisPromise),
-      systemStatusPromise: defer(systemStatusPromise),
     };
   },
   component: JokePage,

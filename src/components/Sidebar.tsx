@@ -1,7 +1,7 @@
 // src/components/Sidebar.tsx
 import { Link, Await, useRouter } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { Route } from "@/routes/_jokeMove/jokeMove.tsx";
+import { Route as RouteLayout } from "@/routes/_jokeMove/route.tsx";
 import { Suspense } from "react";
 
 export function SidebarComponent() {
@@ -10,8 +10,7 @@ export function SidebarComponent() {
 
   // 🟢 Get the promise from the child route loader
   // Note: This will only be available when the current route is /jokeMove
-  const loaderData = Route.useLoaderData();
-  const systemStatusPromise = loaderData?.systemStatusPromise;
+  const { systemStatusPromise } = RouteLayout.useLoaderData();
 
   const handleRefreshStatus = () => {
     // Since we are using a promise from the loader, to get "new" data

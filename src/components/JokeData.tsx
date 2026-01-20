@@ -2,6 +2,7 @@
 
 import { Await, useNavigate, useSearch } from "@tanstack/react-router";
 import { Route } from "@/routes/_jokeMove/jokeMove.tsx";
+import { Route as RouteLayout } from "@/routes/_jokeMove/route.tsx";
 import { Suspense, useEffect } from "react";
 
 function SearchJoke() {
@@ -72,7 +73,7 @@ function RedisData() {
   );
 }
 function StatusGuard() {
-  const { systemStatusPromise } = Route.useLoaderData();
+  const { systemStatusPromise } = RouteLayout.useLoaderData();
   const navigate = useNavigate();
 
   return (
